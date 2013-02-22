@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Robotics.iml" filepath="$PROJECT_DIR$/Robotics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/FeaturesDatabase.iml" filepath="$PROJECT_DIR$/FeaturesDatabase.iml" />
     </modules>
   </component>
 </project>
