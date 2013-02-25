@@ -7,6 +7,8 @@
       <root url="jar://$PROJECT_DIR$/FeaturesDatabase/lib/lwjgl.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/FeaturesDatabase/lib/vecmath-1_5_2-src.zip!/" />
+    </SOURCES>
   </library>
 </component>

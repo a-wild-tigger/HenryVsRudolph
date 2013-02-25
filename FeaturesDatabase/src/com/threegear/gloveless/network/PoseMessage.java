@@ -71,7 +71,7 @@ public class PoseMessage extends BasicMessage {
         buffer.append(String.format(Locale.US, " %f %f %f", t.x, t.y, t.z));
       }
     }
-    
+
     /*
     for (int iHand=0; iHand<N_HANDS; iHand++) {
       for (int jPose=0; jPose < N_POSES; jPose++) {
