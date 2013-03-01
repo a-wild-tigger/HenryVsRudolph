@@ -26,6 +26,10 @@ public class LWJGLRendering {
 
     int theCurrentElement = 0;
 
+    public List<PoseMessage> getSaveSet() {
+        return theSaveSet;
+    }
+
     public enum KeyPress {
         DELETE, ENTER, LEFT, RIGHT, NONE
     }
@@ -50,7 +54,7 @@ public class LWJGLRendering {
 
     }
 
-    public void start() {
+    public List<PoseMessage> Run() {
         try {
             // Setup the window frame
             Display.setTitle("Draw Skeleton Demo");
@@ -93,6 +97,7 @@ public class LWJGLRendering {
         System.out.println("Completed Processing...");
 
         Display.destroy();
+        return theSaveSet;
     }
 
     private void ExecuteRight() {
@@ -305,6 +310,6 @@ public class LWJGLRendering {
         }
 
         LWJGLRendering inputExample = new LWJGLRendering(myMessages);
-        inputExample.start();
+        inputExample.Run();
     }
 }

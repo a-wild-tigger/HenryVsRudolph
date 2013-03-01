@@ -8,7 +8,7 @@ import com.threegear.gloveless.network.PoseMessage;
 import java.io.*;
 import java.util.*;
 
-public class StaticPersistence {
+public class Persistence {
     private final String theDirectoryName;
     private final String theConfigurationName;
 
@@ -16,7 +16,7 @@ public class StaticPersistence {
     private Map<String, Map<String, ContinuousGesture>> theContinuousGestureMap = new HashMap<String, Map<String, ContinuousGesture>>();
     private Set<String> theUserSet = new HashSet<String>();
 
-    public StaticPersistence(String aDirectoryName, String aConfigurationName) {
+    public Persistence(String aDirectoryName, String aConfigurationName) {
         theDirectoryName = aDirectoryName;
         theConfigurationName = aConfigurationName;
     }
@@ -117,5 +117,35 @@ public class StaticPersistence {
         theStaticGestureMap = new HashMap<String, Map<String, StaticGesture>>();
         theContinuousGestureMap = new HashMap<String, Map<String, ContinuousGesture>>();
         theUserSet = new HashSet<String>();
+    }
+
+    public void CreateUser(String aUsername) {
+        theUserSet.add(aUsername);
+        theStaticGestureMap.put(aUsername, new HashMap<String, StaticGesture>());
+        theContinuousGestureMap.put(aUsername, new HashMap<String, ContinuousGesture>());
+    }
+
+    public void PushStaticGestures(String username, String gestureName, List<PoseMessage> myMessagesToSave) {
+        //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public boolean DoesUserExist(String myUserName) {
+        return false;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public List<String> GetAvailableGestures(String theCurrentUser) {
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public boolean UserHasGesture(String theCurrentUser, String aGestureReq) {
+        return false;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public List<PoseMessage> GetStaticGestureSet(String theCurrentUser, String aGestureReq) {
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public void SetStaticGestureSet(String theCurrentUser, String aGestureReq, List<PoseMessage> theMessages) {
+        //To change body of created methods use File | Settings | File Templates.
     }
 }

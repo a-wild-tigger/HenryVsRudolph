@@ -34,11 +34,19 @@ public class SamplingExample {
         myClient.stop();
 
         List<PoseMessage> myMessages = myRecorder.GetMessages();
-        StaticPersistence myPersistence = new StaticPersistence(databaseDirectory, configName);
+        Persistence myPersistence = new Persistence(databaseDirectory, configName);
         myPersistence.Start();
 
+        myPersistence.CreateUser(Username);
+        LWJGLRendering myRender = new LWJGLRendering(myMessages);
+        List<PoseMessage> myMessagesToSave = myRender.Run();
+        myPersistence.PushStaticGestures(Username, GestureName, myMessagesToSave);
 
-
+        myPersistence.SaveAll();
         myPersistence.Stop();
+    }
+
+    public void ViewPersistenceLibrary() {
+
     }
 }

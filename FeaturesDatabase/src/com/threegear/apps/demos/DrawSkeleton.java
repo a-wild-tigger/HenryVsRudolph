@@ -162,7 +162,7 @@ public class DrawSkeleton extends HandTrackingAdapter {
     WorkspaceRenderingHelpers.drawGroundPlane(50);
 
     for (int iHand=0; iHand<2; iHand++) {
-      drawSkeleton(jointFrames[iHand], fingerTips[iHand]);
+      //drawSkeleton(jointFrames[iHand], fingerTips[iHand]);
     }
 
     glEnd();

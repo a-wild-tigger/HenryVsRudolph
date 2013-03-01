@@ -12,6 +12,8 @@ import org.lwjgl.util.glu.GLU;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
 
+import java.util.List;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glColor3f;
 
@@ -238,5 +240,9 @@ public class StaticGestureRecorder extends HandTrackingAdapter {
                 }
             }
         }
+    }
+
+    public List<PoseMessage> Record() {
+
     }
 }
