@@ -1,4 +1,4 @@
-package com.threegear.apps.demos;
+package com.mobilecomputing.src.Training;
 
 import static org.lwjgl.opengl.GL11.GL_LIGHTING;
 import static org.lwjgl.opengl.GL11.GL_LINES;
