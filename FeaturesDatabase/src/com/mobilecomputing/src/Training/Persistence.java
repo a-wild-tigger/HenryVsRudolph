@@ -125,23 +125,32 @@ public class Persistence {
         theStaticGestureMap.get(theCurrentUser).get(aGestureReq).SetMessageSet(theMessages);
     }
 
-    public void PushContinuousGestures(String theCurrentUser, String myGesture, List<List<PoseMessage>> myMessagesToSave) {
-        //To change body of created methods use File | Settings | File Templates.
+    public void PushContinuousGestures(String theCurrentUser, String gesture, List<List<PoseMessage>> myMessagesToSave) {
+        if(!theContinuousGestureMap.containsKey(theCurrentUser)) {
+            theContinuousGestureMap.put(theCurrentUser, new HashMap<String, ContinuousGesture>());
+        }
+
+        if(!theContinuousGestureMap.get(theCurrentUser).containsKey(gesture)) {
+            ContinuousGesture myGesture = ContinuousGesture.CreateNewGestureFile(theCurrentUser, gesture, theDirectoryName);
+            theContinuousGestureMap.get(theCurrentUser).put(gesture, myGesture);
+        }
+
+        theContinuousGestureMap.get(theCurrentUser).get(gesture).AddToMessageSet(myMessagesToSave);
     }
 
     public Set<String> GetAvailableContinuousGestures(String theCurrentUser) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        return theContinuousGestureMap.get(theCurrentUser).keySet();
     }
 
     public boolean UserHasContinuousGesture(String theCurrentUser, String aGestureReq) {
-        return false;  //To change body of created methods use File | Settings | File Templates.
+        return theContinuousGestureMap.get(theCurrentUser).containsKey(aGestureReq);
     }
 
-    public List<PoseMessage> GetContinousGestureSet(String theCurrentUser, String aGestureReq) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+    public List<List<PoseMessage>> GetContinuousGestureSet(String theCurrentUser, String aGestureReq) {
+        return theContinuousGestureMap.get(theCurrentUser).get(aGestureReq).GetGestureSet();
     }
 
-    public void SetContinousGestureSet(String theCurrentUser, String aGestureReq, List<List<PoseMessage>> theMessages) {
-        //To change body of created methods use File | Settings | File Templates.
+    public void SetContinuousGestureSet(String theCurrentUser, String aGestureReq, List<List<PoseMessage>> theMessages) {
+        theContinuousGestureMap.get(theCurrentUser).get(aGestureReq).SetMessageSet(theMessages);
     }
 }

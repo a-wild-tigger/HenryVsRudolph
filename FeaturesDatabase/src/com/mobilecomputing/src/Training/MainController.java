@@ -11,7 +11,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class MainController {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, LWJGLException {
         String databaseDirectory = "DatabaseDirectory";
         String configName = "Configuration.csv";
 
@@ -58,13 +58,13 @@ public class MainController {
         theCurrentUser = myUserName;
     }
 
-    public void MainLoop() throws IOException {
+    public void MainLoop() throws IOException, LWJGLException {
         Start();
         while(HomeScreen());
         Stop();
     }
 
-    private boolean HomeScreen() {
+    private boolean HomeScreen() throws LWJGLException {
         System.out.println("Input Options: ");
         System.out.println("\t1 : Record Static Gesture");
         System.out.println("\t2 : View/Edit Existing Static Gestures");
@@ -90,7 +90,7 @@ public class MainController {
         return true;
     }
 
-    private void ViewEditContinuousGesture() {
+    private void ViewEditContinuousGesture() throws LWJGLException {
         Set<String> theAvailableGestures = thePersistence.GetAvailableContinuousGestures(theCurrentUser);
         if(theAvailableGestures.size() == 0) {
             System.out.println("No Gestures are available.");
@@ -110,14 +110,14 @@ public class MainController {
             return;
         }
 
-        List<PoseMessage> theCurrentGestures = thePersistence.GetContinousGestureSet(theCurrentUser, aGestureReq);
-        List<List<PoseMessage>> theMessages = ContinuousGestureViewer.ViewImages(theCurrentGestures);
-        thePersistence.SetContinousGestureSet(theCurrentUser, aGestureReq, theMessages);
+        List<List<PoseMessage>> theCurrentGestures = thePersistence.GetContinuousGestureSet(theCurrentUser, aGestureReq);
+        List<List<PoseMessage>> theMessages = ContinuousGestureEditor.ViewImages(theCurrentGestures);
+        thePersistence.SetContinuousGestureSet(theCurrentUser, aGestureReq, theMessages);
     }
 
     private void RecordContinuousGesture() {
         System.out.println("The Current Gestures Available for " + theCurrentUser + " are: ");
-        for (String aGesture : thePersistence.GetAvailableGestures(theCurrentUser)) {
+        for (String aGesture : thePersistence.GetAvailableContinuousGestures(theCurrentUser)) {
             System.out.println("\t" + aGesture);
         }
 
