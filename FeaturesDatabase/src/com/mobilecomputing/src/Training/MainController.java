@@ -11,7 +11,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class MainController {
-    public static void main(String[] args) throws IOException, LWJGLException {
+    public static void main(String[] args) throws IOException, LWJGLException, InterruptedException {
         String databaseDirectory = "DatabaseDirectory";
         String configName = "Configuration.csv";
 
@@ -58,13 +58,13 @@ public class MainController {
         theCurrentUser = myUserName;
     }
 
-    public void MainLoop() throws IOException, LWJGLException {
+    public void MainLoop() throws IOException, LWJGLException, InterruptedException {
         Start();
         while(HomeScreen());
         Stop();
     }
 
-    private boolean HomeScreen() throws LWJGLException {
+    private boolean HomeScreen() throws LWJGLException, InterruptedException {
         System.out.println("Input Options: ");
         System.out.println("\t1 : Record Static Gesture");
         System.out.println("\t2 : View/Edit Existing Static Gestures");
@@ -90,7 +90,7 @@ public class MainController {
         return true;
     }
 
-    private void ViewEditContinuousGesture() throws LWJGLException {
+    private void ViewEditContinuousGesture() throws LWJGLException, InterruptedException {
         Set<String> theAvailableGestures = thePersistence.GetAvailableContinuousGestures(theCurrentUser);
         if(theAvailableGestures.size() == 0) {
             System.out.println("No Gestures are available.");
@@ -171,7 +171,7 @@ public class MainController {
         }
 
         List<PoseMessage> myMessages = theStaticRecorder.GetMessages();
-        List<PoseMessage> myMessagesToSave = StaticGestureViewer.SelectImagesToKeep(myMessages);
+        List<PoseMessage> myMessagesToSave = StaticGestureViewer.SelectImagesToKeep(myMessages, false);
         thePersistence.PushStaticGestures(theCurrentUser, myGesture, myMessagesToSave);
     }
 
@@ -196,7 +196,7 @@ public class MainController {
         }
 
         List<PoseMessage> theCurrentGestures = thePersistence.GetStaticGestureSet(theCurrentUser, aGestureReq);
-        List<PoseMessage> theMessages = StaticGestureViewer.ViewImages(theCurrentGestures);
+        List<PoseMessage> theMessages = StaticGestureViewer.SelectImagesToKeep(theCurrentGestures, true);
         thePersistence.SetStaticGestureSet(theCurrentUser, aGestureReq, theMessages);
     }
 

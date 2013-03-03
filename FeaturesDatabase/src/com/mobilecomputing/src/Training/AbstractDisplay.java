@@ -1,6 +1,7 @@
 package com.mobilecomputing.src.Training;
 
 import com.threegear.gloveless.network.HandTrackingMessage;
+import com.threegear.gloveless.network.PoseMessage;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -61,6 +62,52 @@ public class AbstractDisplay {
         glVertex3f(frame0.m03, frame0.m13, frame0.m23);
         glVertex3f(point.x, point.y, point.z);
         glEnd();
+    }
+
+    public void DrawSimpleRectangle() {
+        // set the color of the quad (R,G,B,A)
+        glColor3f(0.5f,0.5f,1.0f);
+
+        // draw quad
+        glBegin(GL_QUADS);
+        glVertex2f(100,100);
+        glVertex2f(100+50,100);
+        glVertex2f(100+50,100+50);
+        glVertex2f(100,100+50);
+        glEnd();
+    }
+
+    public void RenderCurrent(PoseMessage message, boolean DrawRect) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glColor3f(1,1,1);
+
+        WorkspaceRenderingHelpers.drawGroundPlane(50);
+
+        for (int iHand=0; iHand< jointFrames.length; iHand++) {
+            Matrix4f[] myJointFrames = message.getJointFrames(iHand);
+            for (int jJoint=0; jJoint<myJointFrames.length; jJoint++) {
+                jointFrames[iHand][jJoint].set(myJointFrames[jJoint]);
+            }
+        }
+
+        for (int iHand=0; iHand<fingerTips.length; iHand++) {
+            for (int jFinger=0; jFinger<fingerTips[0].length; jFinger++) {
+                Point3f[] myFingerTips = message.getFingerTips(iHand);
+                fingerTips[iHand][jFinger].set(myFingerTips[jFinger]);
+            }
+        }
+
+        for (int iHand=0; iHand<2; iHand++) {
+            drawSkeleton(jointFrames[iHand], fingerTips[iHand]);
+        }
+
+        glEnd();
+
+        if(DrawRect) {
+            DrawSimpleRectangle();
+        }
+
+        Display.update();
     }
 
     protected static void drawSkeleton(Matrix4f[] jointFrames, Point3f[] fingerTips) {

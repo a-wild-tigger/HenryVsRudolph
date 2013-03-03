@@ -38,58 +38,9 @@ public class ContinuousGestureViewer {
         return new ArrayList<List<PoseMessage>>();
     }
 
-    private void RenderCurrent() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glColor3f(1,1,1);
-
-        WorkspaceRenderingHelpers.drawGroundPlane(50);
-        PoseMessage message =  theDataSet.get(theCurrentElement);
-
-        for (int iHand=0; iHand<myDisplay.jointFrames.length; iHand++) {
-            Matrix4f[] myJointFrames = message.getJointFrames(iHand);
-            for (int jJoint=0; jJoint<myJointFrames.length; jJoint++) {
-                myDisplay.jointFrames[iHand][jJoint].set(myJointFrames[jJoint]);
-            }
-        }
-
-        for (int iHand=0; iHand<myDisplay.fingerTips.length; iHand++) {
-            for (int jFinger=0; jFinger<myDisplay.fingerTips[0].length; jFinger++) {
-                Point3f[] myFingerTips = message.getFingerTips(iHand);
-                myDisplay.fingerTips[iHand][jFinger].set(myFingerTips[jFinger]);
-            }
-        }
-
-        for (int iHand=0; iHand<2; iHand++) {
-            myDisplay.drawSkeleton(myDisplay.jointFrames[iHand], myDisplay.fingerTips[iHand]);
-        }
-
-        glEnd();
-        if(SamplingState && theCurrentElement >= theStartElement) {
-            DrawSimpleRectangle();
-        }
-
-        Display.update();
-    }
-
-    private void DrawSimpleRectangle() {
-        // set the color of the quad (R,G,B,A)
-        glColor3f(0.5f,0.5f,1.0f);
-
-        // draw quad
-        glBegin(GL_QUADS);
-        glVertex2f(100,100);
-        glVertex2f(100+50,100);
-        glVertex2f(100+50,100+50);
-        glVertex2f(100,100+50);
-        glEnd();
-    }
-
-    public List<PoseMessage> GetDataset() {
-        return theDataSet;
-    }
-
     public List<List<PoseMessage>> Run() throws LWJGLException {
         myDisplay.Init();
+        boolean keyClick = false;
         while(!finished) {
             if (Display.isCloseRequested()) {
                 finished = true;
@@ -98,14 +49,28 @@ public class ContinuousGestureViewer {
 
                 KeyPress myPress = this.pollInput();
                 switch(myPress) {
-                    case DELETE: ExecuteDelete(); break;
-                    case ENTER: ExecuteEnter(); break;
-                    case LEFT: ExecuteLeft(); break;
-                    case RIGHT: ExecuteRight(); break;
-                    case ESC: ExecuteESC(); break;
+                    case DELETE: ExecuteDelete(); keyClick = true; break;
+                    case ENTER: ExecuteEnter(); keyClick = true; break;
+                    case LEFT: ExecuteLeft(); keyClick = true; break;
+                    case RIGHT: ExecuteRight(); keyClick = true; break;
+                    case ESC: ExecuteESC(); keyClick = true; break;
                 }
             }
-            RenderCurrent();
+
+            if(theDataSet.size() == 0) {
+                break;
+            }
+
+            while(theCurrentElement >= theDataSet.size()) {
+                theCurrentElement--;
+            }
+
+            if(keyClick) {
+                System.out.println("Rendering Item " + (theCurrentElement + 1) + " out of " + theDataSet.size());
+                keyClick = false;
+            }
+
+            myDisplay.RenderCurrent(theDataSet.get(theCurrentElement), (SamplingState && theCurrentElement >= theStartElement));
         }
 
         System.out.println("Completed Processing...");
@@ -151,25 +116,25 @@ public class ContinuousGestureViewer {
             System.out.println("Moving to Next Capture...");
             theCurrentElement++;
         } else {
-            System.out.println("Cannot Move to Next Capture...");
+            System.out.println("Cannot Move to Next Capture... Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         }
     }
 
     private void ExecuteLeft() {
-        if(theCurrentElement - 1 > 0) {
+        if(theCurrentElement >= 1) {
             System.out.println("Moving to Previous Capture...");
             theCurrentElement--;
         } else {
-            System.out.println("Cannot Move to Previous Capture...");
+            System.out.println("Cannot Move to Previous Capture... Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         }
     }
 
     private void ExecuteDelete() {
         if(SamplingState) {
-            System.out.println("Cannot Execute Delete In Sampling State");
+            System.out.println("Cannot Delete Current Image since we are in Sampling Mode");
             return;
         }
-        System.out.println("Deleting Current Image...");
+        System.out.println("Deleting Current Image...  Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         theDataSet.remove(theCurrentElement);
     }
 
@@ -188,11 +153,11 @@ public class ContinuousGestureViewer {
     private int theStartElement = 0;
     private void ExecuteEnter() {
         SamplingState = !SamplingState;
-        if(SamplingState == true) {
+        if(SamplingState) {
             theStartElement = theCurrentElement;
         }
 
-        if(SamplingState == false) {
+        if(!SamplingState) {
             int theEndElement = theCurrentElement;
             List<PoseMessage> myMessages = new ArrayList<PoseMessage>();
             int numIters = theEndElement - theStartElement + 1;
@@ -201,7 +166,12 @@ public class ContinuousGestureViewer {
             }
 
             theSaveSet.add(myMessages);
+            theCurrentElement = 0;
             System.out.println("Saving Current Image...");
         }
+    }
+
+    public List<PoseMessage> GetDataset() {
+        return theDataSet;
     }
 }

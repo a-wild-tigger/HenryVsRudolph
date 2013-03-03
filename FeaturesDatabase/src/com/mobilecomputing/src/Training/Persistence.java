@@ -90,6 +90,7 @@ public class Persistence {
     public void CreateUser(String aUsername) {
         theUserSet.add(aUsername);
         theStaticGestureMap.put(aUsername, new HashMap<String, StaticGesture>());
+        theContinuousGestureMap.put(aUsername, new HashMap<String, ContinuousGesture>());
     }
 
     public boolean DoesUserExist(String myUserName) {
@@ -139,6 +140,9 @@ public class Persistence {
     }
 
     public Set<String> GetAvailableContinuousGestures(String theCurrentUser) {
+        if(!theContinuousGestureMap.containsKey(theCurrentUser)) {
+            return new HashSet<String>();
+        }
         return theContinuousGestureMap.get(theCurrentUser).keySet();
     }
 

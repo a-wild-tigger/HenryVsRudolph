@@ -15,32 +15,54 @@ import static org.lwjgl.opengl.GL11.glEnd;
 
 public class ContinuousGestureEditor {
     public enum KeyPress {
-        DELETE, ENTER, LEFT, RIGHT, ESC, NONE
+        DELETE, LEFT, RIGHT, NONE
     }
 
     private final AbstractDisplay myDisplay = new AbstractDisplay();
+    private List<List<PoseMessage>> theDataSet;
+    private int theCurrentIndex = 0;
+    private int theCurrentSubIndex = 0;
+    private boolean finished = false;
 
     public ContinuousGestureEditor(List<List<PoseMessage>> theMessages) {
         theDataSet = theMessages;
-        theCurrentSubMessages = theMessages.get(theCurrentSubIndex);
     }
 
-    public List<List<PoseMessage>> Run() throws LWJGLException {
+    public List<List<PoseMessage>> Run() throws LWJGLException, InterruptedException {
         myDisplay.Init();
+        boolean keyClick = false;
         while(!finished) {
             if (Display.isCloseRequested()) {
                 finished = true;
             } else {
                 if(theDataSet.size() == 0) break;
-
                 KeyPress myPress = this.pollInput();
                 switch(myPress) {
-                    case DELETE: ExecuteDelete(); break;
-                    case LEFT: ExecuteLeft(); break;
-                    case RIGHT: ExecuteRight(); break;
+                    case DELETE: ExecuteDelete(); keyClick = true; break;
+                    case LEFT: ExecuteLeft(); keyClick = true; break;
+                    case RIGHT: ExecuteRight(); keyClick = true; break;
                 }
             }
-            RenderCurrent();
+
+            if(theDataSet.size() == 0) {
+                break;
+            }
+
+            while(theCurrentIndex >= theDataSet.size()) {
+                theCurrentIndex--;
+                theCurrentSubIndex = 0;
+            }
+
+            if(keyClick) {
+                System.out.println("Rendering Item " + (theCurrentIndex + 1) + " out of " + theDataSet.size());
+                keyClick = false;
+            }
+
+            Thread.sleep(50);
+            PoseMessage myMessage = theDataSet.get(theCurrentIndex).get(theCurrentSubIndex);
+            myDisplay.RenderCurrent(myMessage, false);
+
+            theCurrentSubIndex = (theCurrentSubIndex + 1) % theDataSet.get(theCurrentIndex).size();
         }
 
         System.out.println("Completed Processing...");
@@ -49,70 +71,29 @@ public class ContinuousGestureEditor {
         return theDataSet;
     }
 
-    private List<List<PoseMessage>> theDataSet;
-    private int theCurrentIndex = 0;
-    boolean finished = false;
-    private int theCurrentSubIndex = 0;
-    private List<PoseMessage> theCurrentSubMessages;
-
     private void ExecuteRight() {
         if(theCurrentIndex + 1 < theDataSet.size()) {
             System.out.println("Moving to Next Capture...");
             theCurrentIndex++;
             theCurrentSubIndex = 0;
-            theCurrentSubMessages = theDataSet.get(theCurrentIndex);
         } else {
-            System.out.println("Cannot Move to Next Capture...");
+            System.out.println("Cannot Move to Next Capture... Current Element is " + (theCurrentIndex + 1) + " out of " + theDataSet.size());
         }
     }
 
     private void ExecuteLeft() {
-        if(theCurrentIndex - 1 > 0) {
+        if(theCurrentIndex >= 1) {
             System.out.println("Moving to Previous Capture...");
             theCurrentIndex--;
             theCurrentSubIndex = 0;
-            theCurrentSubMessages = theDataSet.get(theCurrentIndex);
         } else {
-            System.out.println("Cannot Move to Previous Capture...");
+            System.out.println("Cannot Move to Previous Capture... Current Element is " + (theCurrentIndex + 1) + " out of " + theDataSet.size());
         }
     }
 
     private void ExecuteDelete() {
         System.out.println("Deleting Current Image...");
-        ExecuteLeft();
         theDataSet.remove(theCurrentIndex);
-    }
-
-    private void RenderCurrent() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glColor3f(1,1,1);
-
-        WorkspaceRenderingHelpers.drawGroundPlane(50);
-        PoseMessage message =  theCurrentSubMessages.get(theCurrentSubIndex);
-        theCurrentSubIndex++;
-
-        for (int iHand=0; iHand<myDisplay.jointFrames.length; iHand++) {
-            Matrix4f[] myJointFrames = message.getJointFrames(iHand);
-            for (int jJoint=0; jJoint<myJointFrames.length; jJoint++) {
-                myDisplay.jointFrames[iHand][jJoint].set(myJointFrames[jJoint]);
-            }
-        }
-
-        for (int iHand=0; iHand<myDisplay.fingerTips.length; iHand++) {
-            for (int jFinger=0; jFinger<myDisplay.fingerTips[0].length; jFinger++) {
-                Point3f[] myFingerTips = message.getFingerTips(iHand);
-                myDisplay.fingerTips[iHand][jFinger].set(myFingerTips[jFinger]);
-            }
-        }
-
-        for (int iHand=0; iHand<2; iHand++) {
-            myDisplay.drawSkeleton(myDisplay.jointFrames[iHand], myDisplay.fingerTips[iHand]);
-        }
-
-        glEnd();
-        System.out.println("Rendering Frame " + theCurrentSubIndex + " of Sample " + theCurrentIndex);
-
-        Display.update();
     }
 
     public KeyPress pollInput() {
@@ -122,20 +103,12 @@ public class ContinuousGestureEditor {
                     return KeyPress.DELETE;
                 }
 
-                if (Keyboard.getEventKey() == Keyboard.KEY_RETURN) {
-                    return KeyPress.ENTER;
-                }
-
                 if (Keyboard.getEventKey() == Keyboard.KEY_LEFT) {
                     return KeyPress.LEFT;
                 }
 
                 if(Keyboard.getEventKey() == Keyboard.KEY_RIGHT) {
                     return KeyPress.RIGHT;
-                }
-
-                if(Keyboard.getEventKey() == Keyboard.KEY_ESCAPE) {
-                    return KeyPress.ESC;
                 }
 
                 return KeyPress.NONE;
@@ -147,7 +120,7 @@ public class ContinuousGestureEditor {
         return KeyPress.NONE;
     }
 
-    public static List<List<PoseMessage>> ViewImages(List<List<PoseMessage>> theCurrentGestures) throws LWJGLException {
+    public static List<List<PoseMessage>> ViewImages(List<List<PoseMessage>> theCurrentGestures) throws LWJGLException, InterruptedException {
         ContinuousGestureEditor myEditor = new ContinuousGestureEditor(theCurrentGestures);
         return myEditor.Run();
     }

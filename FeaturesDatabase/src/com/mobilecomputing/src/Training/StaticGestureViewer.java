@@ -16,6 +16,7 @@ public class StaticGestureViewer {
     private List<PoseMessage> theDataSet;
     private List<PoseMessage> theSaveSet = new ArrayList<PoseMessage>();
     private final AbstractDisplay myDisplay = new AbstractDisplay();
+
     int theCurrentElement = 0;
     boolean finished = false;
 
@@ -27,79 +28,23 @@ public class StaticGestureViewer {
         theDataSet = aMessages;
     }
 
-    public static List<PoseMessage> SelectImagesToKeep(List<PoseMessage> myMessages) {
+    public static List<PoseMessage> SelectImagesToKeep(List<PoseMessage> myMessages, boolean isEditing) {
         StaticGestureViewer myViewer = new StaticGestureViewer(myMessages);
         try {
-            return myViewer.Run();
+            List<PoseMessage> myReturnMessages = myViewer.Run();
+            if(isEditing) { return myViewer.GetDataset(); }
+            return myReturnMessages;
         } catch (LWJGLException e) {
             System.out.println("Could Not Run Viewer: " + e.toString());
         }
 
+        if(isEditing) { return myMessages; }
         return new ArrayList<PoseMessage>();
     }
 
-    private void RenderCurrent() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glColor3f(1,1,1);
-
-        WorkspaceRenderingHelpers.drawGroundPlane(50);
-        PoseMessage message =  theDataSet.get(theCurrentElement);
-
-        for (int iHand=0; iHand<myDisplay.jointFrames.length; iHand++) {
-            Matrix4f[] myJointFrames = message.getJointFrames(iHand);
-            for (int jJoint=0; jJoint<myJointFrames.length; jJoint++) {
-                myDisplay.jointFrames[iHand][jJoint].set(myJointFrames[jJoint]);
-            }
-        }
-
-        for (int iHand=0; iHand<myDisplay.fingerTips.length; iHand++) {
-            for (int jFinger=0; jFinger<myDisplay.fingerTips[0].length; jFinger++) {
-                Point3f[] myFingerTips = message.getFingerTips(iHand);
-                myDisplay.fingerTips[iHand][jFinger].set(myFingerTips[jFinger]);
-            }
-        }
-
-        for (int iHand=0; iHand<2; iHand++) {
-            myDisplay.drawSkeleton(myDisplay.jointFrames[iHand], myDisplay.fingerTips[iHand]);
-        }
-
-        glEnd();
-
-        Display.update();
-    }
-
-    private void DrawSimpleRectangle() {
-        // set the color of the quad (R,G,B,A)
-        glColor3f(0.5f,0.5f,1.0f);
-
-        // draw quad
-        glBegin(GL_QUADS);
-        glVertex2f(100,100);
-        glVertex2f(100+50,100);
-        glVertex2f(100+50,100+50);
-        glVertex2f(100,100+50);
-        glEnd();
-    }
-
-    public static List<PoseMessage> ViewImages(List<PoseMessage> theCurrentGestures) {
-        StaticGestureViewer myViewer = new StaticGestureViewer(theCurrentGestures);
-        try {
-            myViewer.Run();
-            return myViewer.GetDataset();
-        } catch (LWJGLException e) {
-            System.out.println("Could Not Run Viewer: " + e.toString());
-        }
-
-        return new ArrayList<PoseMessage>();    }
-
-    public List<PoseMessage> GetDataset() {
-        return theDataSet;
-    }
-
-
-
     public List<PoseMessage> Run() throws LWJGLException {
         myDisplay.Init();
+        boolean keyClick = false;
         while(!finished) {
             if (Display.isCloseRequested()) {
                 finished = true;
@@ -108,13 +53,27 @@ public class StaticGestureViewer {
 
                 KeyPress myPress = this.pollInput();
                 switch(myPress) {
-                    case DELETE: ExecuteDelete(); break;
-                    case ENTER: ExecuteEnter(); break;
-                    case LEFT: ExecuteLeft(); break;
-                    case RIGHT: ExecuteRight(); break;
+                    case DELETE: ExecuteDelete(); keyClick = true; break;
+                    case ENTER: ExecuteEnter(); keyClick = true; break;
+                    case LEFT: ExecuteLeft(); keyClick = true; break;
+                    case RIGHT: ExecuteRight(); keyClick = true; break;
                 }
             }
-            RenderCurrent();
+
+            if(theDataSet.size() == 0) {
+                break;
+            }
+
+            while(theCurrentElement >= theDataSet.size()) {
+                theCurrentElement--;
+            }
+
+            if(keyClick) {
+                System.out.println("Rendering Item " + (theCurrentElement + 1) + " out of " + theDataSet.size());
+                keyClick = false;
+            }
+
+            myDisplay.RenderCurrent(theDataSet.get(theCurrentElement), false);
         }
 
         System.out.println("Completed Processing...");
@@ -156,27 +115,29 @@ public class StaticGestureViewer {
             System.out.println("Moving to Next Capture...");
             theCurrentElement++;
         } else {
-            System.out.println("Cannot Move to Next Capture...");
+            System.out.println("Cannot Move to Next Capture... Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         }
     }
 
     private void ExecuteLeft() {
-        if(theCurrentElement - 1 > 0) {
+        if(theCurrentElement >= 1) {
             System.out.println("Moving to Previous Capture...");
             theCurrentElement--;
         } else {
-            System.out.println("Cannot Move to Previous Capture...");
+            System.out.println("Cannot Move to Previous Capture... Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         }
     }
 
     private void ExecuteEnter() {
-        System.out.println("Saving Current Image...");
+        System.out.println("Saving Current Image... Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         PoseMessage myMessage = theDataSet.remove(theCurrentElement);
         theSaveSet.add(myMessage);
     }
 
     private void ExecuteDelete() {
-        System.out.println("Deleting Current Image...");
+        System.out.println("Deleting Current Image...  Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         theDataSet.remove(theCurrentElement);
     }
+
+    public List<PoseMessage> GetDataset() { return theDataSet; }
 }

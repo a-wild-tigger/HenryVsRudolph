@@ -2,20 +2,19 @@ package com.mobilecomputing.src.Training;
 
 import com.threegear.gloveless.network.PoseMessage;
 
-import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ContinuousGesture {
-    private final File path;
+    private final File thePath;
     private boolean dirty;
     List<List<PoseMessage>> theContinuousSampling;
 
-    private ContinuousGesture(File aFile, List<List<PoseMessage>> aPoseSet, boolean isdirty) {
-        path = aFile;
+    private ContinuousGesture(File aFile, List<List<PoseMessage>> aPoseSet, boolean aDirty) {
+        thePath = aFile;
         theContinuousSampling = aPoseSet;
-        dirty = isdirty;
+        dirty = aDirty;
     }
 
     public static File GetPathName(String aUserName, String aGestureName, String theDirName) {
@@ -32,7 +31,7 @@ public class ContinuousGesture {
             br = new BufferedReader(new FileReader(aFile));
             List<PoseMessage> myMessagese = new ArrayList<PoseMessage>();
             while ((sCurrentLine = br.readLine()) != null) {
-                if(sCurrentLine.equals("New Line")) {
+                if(sCurrentLine.equals("New Sample")) {
                     if(myMessagese.size() != 0) {
                         myMessages.add(myMessagese);
                     }
@@ -65,7 +64,7 @@ public class ContinuousGesture {
     }
 
     public void Persist() throws IOException {
-        FileWriter fw = new FileWriter(path.getAbsoluteFile());
+        FileWriter fw = new FileWriter(thePath.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fw);
 
         for(int i = 0; i!= theContinuousSampling.size(); i++) {
@@ -74,7 +73,7 @@ public class ContinuousGesture {
 
             List<PoseMessage> myMessages = theContinuousSampling.get(i);
             for(int j = 0; j!= myMessages.size(); j++) {
-                bw.write(myMessages.get(i).serialize());
+                bw.write(myMessages.get(j).serialize());
                 bw.newLine();
             }
         }
