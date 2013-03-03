@@ -4,6 +4,8 @@ import audioop
 import shelve
 import os
 import AudioMath
+import numpy
+import scipy.io.wavfile
 
 class StreamObject:
     def __init__(self, numSecondsPerFrame):
@@ -114,7 +116,10 @@ class Persistence:
         print "Available Users: "
         for key in self.myStore["TrainingSets"].keys():
             print "\t" + key
-        
+     
+    def GetGestureSet(self, aUsername):
+        return self.myStore["TrainingSets"][aUsername]
+     
     def ViewAvailableGestures(self, aUsername):
         if(not self.myStore["TrainingSets"].has_key(aUsername)):
             print ("Could Not Find User " + aUsername)
@@ -173,6 +178,8 @@ def RunStreamingClassifier(aStream, ampThreshold, executeCommand, log):
                 if(log): print("Big Amplitude 2: " + str(amplitude))
                 frames += data
             elif (frames != ""):
+                if(not log):
+                    frames = numpy.array(wave.struct.unpack("%dh"%(len(frames)/aStream.samp_width)))
                 executeCommand(frames)
                 frames = ""
     except KeyboardInterrupt:
@@ -195,8 +202,16 @@ def RecordSamples(persist, aUsername):
     persist.PlayBackRecords(aUsername, aGestureName)
         
 def RunTrainer(persist, aUsername):
-    listofData = persist.GetGestureSet()
-    params = AudioMath.GenerateParams(listofData)
+    listofData = persist.GetGestureSet(aUsername)
+    newSource = dict()
+    for gesturename in listofData.keys():
+        temp = []
+        for file in listofData[gesturename]:
+            print "Reading " + str(file)
+            temp.append(scipy.io.wavfile.read(file))
+        newSource[gesturename] = temp
+    
+    params = AudioMath.GenerateParams(newSource)
     persist.SetClassifierParams(params, aUsername)
     
 def RunClassifier(persist, aUsername):
