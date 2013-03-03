@@ -1,19 +1,24 @@
-package com.mobilecomputing.src.Training;
+package com.mobilecomputing.src.Training.Persistence;
 
-import com.threegear.gloveless.network.HandTrackingClient;
-import com.threegear.gloveless.network.PoseMessage;
+import com.mobilecomputing.src.Training.Classification.BaseClassifier;
+import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
+import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
+import com.mobilecomputing.src.Training.Training.ContinuousTrainedParameters;
+import com.mobilecomputing.src.Training.Training.StaticTrainedParameters;
 import org.lwjgl.LWJGLException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
 public class MainController {
-    public static void main(String[] args) throws IOException, LWJGLException, InterruptedException {
-        String databaseDirectory = "DatabaseDirectory";
-        String configName = "Configuration.csv";
+    private static final String databaseDirectory = "DatabaseDirectory";
+    private static final String configName = "Configuration.csv";
+
+    public static void main(String[] args) throws IOException, LWJGLException, InterruptedException, ClassNotFoundException {
 
         File myDatabaseDirectory = new File(databaseDirectory);
         if(!myDatabaseDirectory.exists()) {
@@ -32,7 +37,7 @@ public class MainController {
 
     private final Scanner theInput = new Scanner(System.in);
     private final Persistence thePersistence;
-    private final Recorder theStaticRecorder;
+    private Recorder theStaticRecorder;
     private String theCurrentUser;
 
     public MainController(Persistence aPersistence) {
@@ -40,7 +45,7 @@ public class MainController {
         theStaticRecorder = new Recorder();
     }
 
-    private void Start() throws IOException {
+    private void Start() throws IOException, ClassNotFoundException {
         thePersistence.Start();
 
         System.out.println("Enter User Name: ");
@@ -58,23 +63,25 @@ public class MainController {
         theCurrentUser = myUserName;
     }
 
-    public void MainLoop() throws IOException, LWJGLException, InterruptedException {
+    public void MainLoop() throws IOException, LWJGLException, InterruptedException, ClassNotFoundException {
         Start();
         while(HomeScreen());
         Stop();
     }
 
-    private boolean HomeScreen() throws LWJGLException, InterruptedException {
+    private boolean HomeScreen() throws LWJGLException, InterruptedException, IOException, ClassNotFoundException {
         System.out.println("Input Options: ");
         System.out.println("\t1 : Record Static Gesture");
         System.out.println("\t2 : View/Edit Existing Static Gestures");
         System.out.println("\t3 : Record Continuous Gesture");
         System.out.println("\t4 : View/Edit Existing Continuous Gestures");
-        System.out.println("\t5 : Quit");
+        System.out.println("\t5 : Train User Parameters");
+        System.out.println("\t6 : Run Realtime Classification");
+        System.out.println("\t7 : Quit");
 
         int aValue = theInput.nextInt();
         theInput.nextLine();
-        if(aValue > 5 || aValue <= 0) {
+        if(aValue > 7 || aValue <= 0) {
             System.out.println("Invalid Input.");
             return HomeScreen();
         } else {
@@ -83,11 +90,30 @@ public class MainController {
                 case 2: ViewEditStaticGestures(); break;
                 case 3: RecordContinuousGesture(); break;
                 case 4: ViewEditContinuousGesture(); break;
-                case 5: return false;
+                case 5: TrainModels(); break;
+                case 6: RunRealtimeClassifier(); break;
+                case 7: return false;
             }
         }
 
         return true;
+    }
+
+    private void RunRealtimeClassifier() throws IOException, ClassNotFoundException {
+        ContinuousTrainedParameters myCTSParams = thePersistence.GetTrainedCTSParams(theCurrentUser);
+        StaticTrainedParameters myStaticParams = thePersistence.GetTrainedStaticParams(theCurrentUser);
+        BaseClassifier.Run(myCTSParams, myStaticParams);
+    }
+
+    private void TrainModels() {
+        Map<String, List<List<PoseMessage>>> myCTSFeatures = thePersistence.GetAllCTSFeatures(theCurrentUser);
+        Map<String, List<PoseMessage>> myStaticFeatures = thePersistence.GetAllStaticFeatures(theCurrentUser);
+
+        ContinuousTrainedParameters myCTSParams = ContinuousTrainedParameters.GenerateParams(myCTSFeatures, theCurrentUser, databaseDirectory);
+        StaticTrainedParameters myStaticParams = StaticTrainedParameters.GenerateParams(myStaticFeatures, theCurrentUser, databaseDirectory);
+
+        thePersistence.SetContinuousTrainedModel(theCurrentUser, myCTSParams);
+        thePersistence.SetStaticTrainedModel(theCurrentUser, myStaticParams);
     }
 
     private void ViewEditContinuousGesture() throws LWJGLException, InterruptedException {
@@ -116,6 +142,7 @@ public class MainController {
     }
 
     private void RecordContinuousGesture() {
+        theStaticRecorder = new Recorder();
         System.out.println("The Current Gestures Available for " + theCurrentUser + " are: ");
         for (String aGesture : thePersistence.GetAvailableContinuousGestures(theCurrentUser)) {
             System.out.println("\t" + aGesture);
@@ -146,6 +173,7 @@ public class MainController {
     }
 
     private void RecordStaticGesture() {
+        theStaticRecorder = new Recorder();
         System.out.println("The Current Gestures Available for " + theCurrentUser + " are: ");
         for (String aGesture : thePersistence.GetAvailableGestures(theCurrentUser)) {
             System.out.println("\t" + aGesture);

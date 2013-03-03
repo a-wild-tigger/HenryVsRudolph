@@ -1,4 +1,4 @@
-package com.mobilecomputing.src.Training;
+package com.mobilecomputing.src.Training.Persistence;
 
 import static org.lwjgl.opengl.GL11.GL_LIGHTING;
 import static org.lwjgl.opengl.GL11.GL_LINES;

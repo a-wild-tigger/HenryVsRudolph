@@ -1,4 +1,4 @@
-package com.threegear.gloveless.network;
+package com.mobilecomputing.src.Training.Persistence.threegears;
 
 import java.util.Locale;
 
@@ -86,7 +86,7 @@ public class PoseMessage extends BasicMessage {
   
   public static HandTrackingMessage deserialize(String data) {
     String[] strings = data.split(" ");
-    ParseResult parseResult = BasicMessage.parse(strings);
+    ParseResult parseResult = parse(strings);
     
     float[] confidenceEstimates = new float[N_HANDS];
     Quat4f[][] jointRotations = new Quat4f[N_HANDS][N_JOINTS];

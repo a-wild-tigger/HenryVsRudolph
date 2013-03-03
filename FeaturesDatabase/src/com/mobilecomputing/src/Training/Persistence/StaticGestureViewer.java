@@ -1,44 +1,44 @@
-package com.mobilecomputing.src.Training;
+package com.mobilecomputing.src.Training.Persistence;
 
-import com.threegear.gloveless.network.PoseMessage;
+import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Point3f;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.*;
-
-public class ContinuousGestureViewer {
+public class StaticGestureViewer {
     private List<PoseMessage> theDataSet;
-    private List<List<PoseMessage>> theSaveSet = new ArrayList<List<PoseMessage>>();
+    private List<PoseMessage> theSaveSet = new ArrayList<PoseMessage>();
     private final AbstractDisplay myDisplay = new AbstractDisplay();
+
     int theCurrentElement = 0;
     boolean finished = false;
 
     public enum KeyPress {
-        DELETE, ENTER, LEFT, RIGHT, ESC, NONE
+        DELETE, ENTER, LEFT, RIGHT, NONE
     }
 
-    public ContinuousGestureViewer(List<PoseMessage> aMessages) {
+    public StaticGestureViewer(List<PoseMessage> aMessages) {
         theDataSet = aMessages;
     }
 
-    public static List<List<PoseMessage>> SelectImagesToKeep(List<PoseMessage> myMessages) {
-        ContinuousGestureViewer myViewer = new ContinuousGestureViewer(myMessages);
+    public static List<PoseMessage> SelectImagesToKeep(List<PoseMessage> myMessages, boolean isEditing) {
+        StaticGestureViewer myViewer = new StaticGestureViewer(myMessages);
         try {
-            return myViewer.Run();
+            List<PoseMessage> myReturnMessages = myViewer.Run();
+            if(isEditing) { return myViewer.GetDataset(); }
+            return myReturnMessages;
         } catch (LWJGLException e) {
             System.out.println("Could Not Run Viewer: " + e.toString());
         }
 
-        return new ArrayList<List<PoseMessage>>();
+        if(isEditing) { return myMessages; }
+        return new ArrayList<PoseMessage>();
     }
 
-    public List<List<PoseMessage>> Run() throws LWJGLException {
+    public List<PoseMessage> Run() throws LWJGLException {
         myDisplay.Init();
         boolean keyClick = false;
         while(!finished) {
@@ -53,7 +53,6 @@ public class ContinuousGestureViewer {
                     case ENTER: ExecuteEnter(); keyClick = true; break;
                     case LEFT: ExecuteLeft(); keyClick = true; break;
                     case RIGHT: ExecuteRight(); keyClick = true; break;
-                    case ESC: ExecuteESC(); keyClick = true; break;
                 }
             }
 
@@ -70,7 +69,7 @@ public class ContinuousGestureViewer {
                 keyClick = false;
             }
 
-            myDisplay.RenderCurrent(theDataSet.get(theCurrentElement), (SamplingState && theCurrentElement >= theStartElement));
+            myDisplay.RenderCurrent(theDataSet.get(theCurrentElement), false);
         }
 
         System.out.println("Completed Processing...");
@@ -96,10 +95,6 @@ public class ContinuousGestureViewer {
 
                 if(Keyboard.getEventKey() == Keyboard.KEY_RIGHT) {
                     return KeyPress.RIGHT;
-                }
-
-                if(Keyboard.getEventKey() == Keyboard.KEY_ESCAPE) {
-                    return KeyPress.ESC;
                 }
 
                 return KeyPress.NONE;
@@ -129,49 +124,16 @@ public class ContinuousGestureViewer {
         }
     }
 
+    private void ExecuteEnter() {
+        System.out.println("Saving Current Image... Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
+        PoseMessage myMessage = theDataSet.remove(theCurrentElement);
+        theSaveSet.add(myMessage);
+    }
+
     private void ExecuteDelete() {
-        if(SamplingState) {
-            System.out.println("Cannot Delete Current Image since we are in Sampling Mode");
-            return;
-        }
         System.out.println("Deleting Current Image...  Current Element is " + (theCurrentElement + 1) + " out of " + theDataSet.size());
         theDataSet.remove(theCurrentElement);
     }
 
-    private void ExecuteESC() {
-        if(SamplingState) {
-            System.out.println("Exiting Sampling State");
-            SamplingState = false;
-        }
-
-        else {
-            System.out.println("Currently not in Sampling State");
-        }
-    }
-
-    private boolean SamplingState = false;
-    private int theStartElement = 0;
-    private void ExecuteEnter() {
-        SamplingState = !SamplingState;
-        if(SamplingState) {
-            theStartElement = theCurrentElement;
-        }
-
-        if(!SamplingState) {
-            int theEndElement = theCurrentElement;
-            List<PoseMessage> myMessages = new ArrayList<PoseMessage>();
-            int numIters = theEndElement - theStartElement + 1;
-            for(int i = 0; i != numIters; i++) {
-                myMessages.add(theDataSet.remove(theStartElement));
-            }
-
-            theSaveSet.add(myMessages);
-            theCurrentElement = 0;
-            System.out.println("Saving Current Image...");
-        }
-    }
-
-    public List<PoseMessage> GetDataset() {
-        return theDataSet;
-    }
+    public List<PoseMessage> GetDataset() { return theDataSet; }
 }

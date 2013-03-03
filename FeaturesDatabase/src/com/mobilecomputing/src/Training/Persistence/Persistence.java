@@ -1,8 +1,10 @@
-package com.mobilecomputing.src.Training;
+package com.mobilecomputing.src.Training.Persistence;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
-import com.threegear.gloveless.network.PoseMessage;
+import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
+import com.mobilecomputing.src.Training.Training.ContinuousTrainedParameters;
+import com.mobilecomputing.src.Training.Training.StaticTrainedParameters;
 
 import java.io.*;
 import java.util.*;
@@ -13,15 +15,17 @@ public class Persistence {
 
     private Map<String, Map<String, ContinuousGesture>> theContinuousGestureMap = new HashMap<String, Map<String, ContinuousGesture>>();
     private Map<String, Map<String, StaticGesture>> theStaticGestureMap = new HashMap<String, Map<String, StaticGesture>>();
-    private Set<String> theUserSet = new HashSet<String>();
+    private Map<String, StaticTrainedParameters> theStaticModelsMap = new HashMap<String, StaticTrainedParameters>();
+    private Map<String, ContinuousTrainedParameters> theContinuousModelsMap = new HashMap<String, ContinuousTrainedParameters>();
 
+    private Set<String> theUserSet = new HashSet<String>();
     public Persistence(String aDirectoryName, String aConfigurationName) {
         theDirectoryName = aDirectoryName;
         theConfigurationName = aConfigurationName;
     }
 
     // We store config information as User,Gesture,Static/Continuous
-    public void Start() throws IOException {
+    public void Start() throws IOException, ClassNotFoundException {
         File theDir = new File(theDirectoryName, theConfigurationName);
         CSVReader reader = new CSVReader(new FileReader(theDir), ',');
         String [] nextLine;
@@ -49,6 +53,16 @@ public class Persistence {
                 theContinuousGestureMap.get(aUserName).put(aGestureName, aGesture);
                 theUserSet.add(aUserName);
             }
+
+            if(aStaticOrCTS.equals("StaticModel")) {
+                theStaticModelsMap.put(aUserName, StaticTrainedParameters.BuildParams(aUserName, theDirectoryName));
+                theUserSet.add(aUserName);
+            }
+
+            if(aStaticOrCTS.equals("ContinuousModel")) {
+                theContinuousModelsMap.put(aUserName, ContinuousTrainedParameters.BuildParams(aUserName, theDirectoryName));
+                theUserSet.add(aUserName);
+            }
         }
 
         reader.close();
@@ -57,6 +71,18 @@ public class Persistence {
     public void Stop() throws IOException {
         File theDir = new File(theDirectoryName, theConfigurationName);
         CSVWriter writer =  new CSVWriter(new FileWriter(theDir), ',');
+
+        for (String aUsername : theStaticModelsMap.keySet()) {
+            String[] entries = (aUsername + "#ALL#StaticModel").split("#");
+            writer.writeNext(entries);
+            theStaticModelsMap.get(aUsername).Persist();
+        }
+
+        for(String aUser : theContinuousModelsMap.keySet()) {
+            String[] entries = (aUser + "#ALL#ContinuousModel").split("#");
+            writer.writeNext(entries);
+            theContinuousModelsMap.get(aUser).Persist();
+        }
 
         for (String aUser : theStaticGestureMap.keySet()) {
             Map<String, StaticGesture> aGesture = theStaticGestureMap.get(aUser);
@@ -85,6 +111,14 @@ public class Persistence {
         }
 
         writer.close();
+    }
+
+    public void SetContinuousTrainedModel(String aUsername, ContinuousTrainedParameters aParams) {
+        theContinuousModelsMap.put(aUsername, aParams);
+    }
+
+    public void SetStaticTrainedModel(String aUsername, StaticTrainedParameters aParams) {
+        theStaticModelsMap.put(aUsername, aParams);
     }
 
     public void CreateUser(String aUsername) {
@@ -156,5 +190,33 @@ public class Persistence {
 
     public void SetContinuousGestureSet(String theCurrentUser, String aGestureReq, List<List<PoseMessage>> theMessages) {
         theContinuousGestureMap.get(theCurrentUser).get(aGestureReq).SetMessageSet(theMessages);
+    }
+
+    public Map<String, List<List<PoseMessage>>> GetAllCTSFeatures(String theCurrentUser) {
+        Map<String, List<List<PoseMessage>>> myDataset = new HashMap<String, List<List<PoseMessage>>>();
+        Set<String> theCTSGests = GetAvailableContinuousGestures(theCurrentUser);
+        for (String theCTSGest : theCTSGests) {
+            myDataset.put(theCTSGest, GetContinuousGestureSet(theCurrentUser, theCTSGest));
+        }
+
+        return myDataset;
+    }
+
+    public Map<String, List<PoseMessage>> GetAllStaticFeatures(String theCurrentUser) {
+        Map<String, List<PoseMessage>> myDataset = new HashMap<String, List<PoseMessage>>();
+        Set<String> theStaticGests = GetAvailableGestures(theCurrentUser);
+        for (String theStaticGest : theStaticGests) {
+            myDataset.put(theStaticGest, GetStaticGestureSet(theCurrentUser, theStaticGest));
+        }
+
+        return myDataset;
+    }
+
+    public ContinuousTrainedParameters GetTrainedCTSParams(String theCurrentUser) throws IOException, ClassNotFoundException {
+        return ContinuousTrainedParameters.BuildParams(theCurrentUser, theDirectoryName);
+    }
+
+    public StaticTrainedParameters GetTrainedStaticParams(String theCurrentUser) throws IOException, ClassNotFoundException {
+        return StaticTrainedParameters.BuildParams(theCurrentUser, theDirectoryName);
     }
 }

@@ -1,4 +1,4 @@
-package com.threegear.gloveless.network;
+package com.mobilecomputing.src.Training.Persistence.threegears;
 
 /**
  * A listener interface for receiving hand update events.

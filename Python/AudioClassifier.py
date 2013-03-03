@@ -52,10 +52,11 @@ class Persistence:
         self.myStore.close()
         
     def InsertNewGestures(self, aUsername, aGestureName, ListOfBytes, Stream):
-        if(not self.myStore["TrainingSets"].has_key(aUsername)):
+        if(not self.myStore["TrainingSets"].has_key(aUsername)):       
             mySet = self.myStore["TrainingSets"]
             mySet[aUsername] = {}
             self.myStore["TrainingSets"] = mySet
+            
 
         if(not self.myStore["TrainingSets"][aUsername].has_key(aGestureName)):
             mySet = self.myStore["TrainingSets"][aUsername]
@@ -77,8 +78,8 @@ class Persistence:
         
         mySet = self.myStore["TrainingSets"]
         mySet[aUsername] = data
-        
         self.myStore["TrainingSets"] = mySet
+        
         
     def PlayBackRecords(self, aUsername, aGestureName):
         if(not self.myStore["TrainingSets"].has_key(aUsername)):
@@ -221,6 +222,7 @@ def RunClassifier(persist, aUsername):
         return
 
     aParams = persist.GetClassifierParams(aUsername)
+    input(str(aParams))
     classifier = AudioMath.AudioClassifier(aParams)
     
     with StreamObject(.1) as myStream:

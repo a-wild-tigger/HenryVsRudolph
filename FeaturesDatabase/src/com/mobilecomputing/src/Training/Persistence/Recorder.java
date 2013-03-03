@@ -1,6 +1,8 @@
-package com.mobilecomputing.src.Training;
+package com.mobilecomputing.src.Training.Persistence;
 
-import com.threegear.gloveless.network.*;
+import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingAdapter;
+import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
+import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 

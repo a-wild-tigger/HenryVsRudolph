@@ -1,17 +1,11 @@
-package com.mobilecomputing.src.Training;
+package com.mobilecomputing.src.Training.Persistence;
 
-import com.threegear.gloveless.network.PoseMessage;
+import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Point3f;
 import java.util.List;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glColor3f;
-import static org.lwjgl.opengl.GL11.glEnd;
 
 public class ContinuousGestureEditor {
     public enum KeyPress {

@@ -1,6 +1,6 @@
-package com.mobilecomputing.src.Training;
+package com.mobilecomputing.src.Training.Persistence;
 
-import com.threegear.gloveless.network.PoseMessage;
+import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 
 import java.io.*;
 import java.util.ArrayList;

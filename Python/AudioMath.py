@@ -17,7 +17,7 @@ class AudioClassifier():
         for gesture in self.params[length].keys():
             dists = []
             for i in range(len(mfccs)):
-                dists.append(dist.euclidean(mfccs[i], self.params[length][gesture][i]))
+                dists.append(dist.distance(mfccs[i], self.params[length][gesture][i]))
 
             print "Score against " + gesture + " : " + str(numpy.mean(dists))
         
@@ -26,9 +26,11 @@ def GenerateParams(listOfGestureRecordings):
     lengths = set()
     PostProcessedDict = {}
     for gestureName in listOfGestureRecordings:
+        print "Processing " + gestureName
         mfccs = []
         for rate, audiosmpl in listOfGestureRecordings[gestureName]:
             length = len(audiosmpl) / 16000.0
+            print length
             lengths.add(length)
             if(length not in lengthset):
                 lengthset[length] = {}
