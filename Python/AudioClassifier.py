@@ -133,12 +133,13 @@ class Persistence:
             print "\t" + gesture
         
     def IsTrained(self, aUsername):
-        return self.myStore["Classifiers"].hasKey("aUsername")
+        return self.myStore["Classifiers"].has_key(aUsername)
         
     def SetClassifierParams(self, aParams, aUsername):
         aSet = self.myStore["Classifiers"]
         aSet[aUsername] = aParams
         self.myStore["Classifiers"] = aSet
+        
         
     def GetClassifierParams(self, aUsername):
         return self.myStore["Classifiers"][aUsername]
@@ -220,7 +221,7 @@ def RunClassifier(persist, aUsername):
         return
 
     aParams = persist.GetClassifierParams(aUsername)
-    classifier = AudioClassifier(aParams)
+    classifier = AudioMath.AudioClassifier(aParams)
     
     with StreamObject(.1) as myStream:
         RunStreamingClassifier(myStream, 1000, lambda data : AudioClassifer.Classify(data))
