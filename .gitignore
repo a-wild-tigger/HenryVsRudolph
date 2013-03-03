@@ -4,6 +4,7 @@
 *.war
 *.ear
 .DS_Store
+*.pyc
 
 workspace.xml
 tasks.xml

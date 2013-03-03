@@ -220,7 +220,7 @@ def RunClassifier(persist, aUsername):
         return
 
     aParams = persist.GetClassifierParams(aUsername)
-    AudioClassifier = AudioMath.BuildClassifier(aParams)
+    classifier = AudioClassifier(aParams)
     
     with StreamObject(.1) as myStream:
         RunStreamingClassifier(myStream, 1000, lambda data : AudioClassifer.Classify(data))
