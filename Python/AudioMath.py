@@ -5,19 +5,21 @@ class AudioClassifier():
     def __init__(self, paramDict):
        self.params = paramDict
 
-    def Classify(dataSampleAsSciptArray):
-        length = audiosmpl / 16000.0
+    def Classify(self, audiosmpl):
+        length = len(audiosmpl) / 16000.0
         mfccs = MFCC.extract(audiosmpl)
-        sample_avgs = self.params[length]
-        
-        print ("Encountered Sample of Length " + str(length))
-        if(length in self.params):
-            print "Length Not in Sample!"
+        if(length not in self.params):
+            print "Length Not Found"
             return
-        
+
+        print ("Encountered Sample of Length " + str(length))
+        sample_avgs = self.params[length]
         for gesture in self.params[length].keys():
-            e_score = dist.EuclideanDistance(mfccs, self.params[length][gesture])
-            print "Score against " + gesture + " : " + e_score
+            dists = []
+            for i in range(len(mfccs)):
+                dists.append(dist.euclidean(mfccs[i], self.params[length][gesture][i]))
+
+            print "Score against " + gesture + " : " + str(numpy.mean(dists))
         
 def GenerateParams(listOfGestureRecordings):
     lengthset = {}

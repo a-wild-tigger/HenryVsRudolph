@@ -57,19 +57,19 @@ class Persistence:
             mySet[aUsername] = {}
             self.myStore["TrainingSets"] = mySet
 
-        dataSet = []
-        for i, item in enumerate(ListOfBytes):
-            filename = "Database/" + aUsername + "_" + aGestureName + "_" + str(i + len(self.myStore["TrainingSets"][aUsername])) + ".wav"
-            WriteWaveFile(filename, item, Stream.num_channels,
-                          Stream.samp_width, Stream.sample_rate)
-            dataSet.append(filename)
-        
         if(not self.myStore["TrainingSets"][aUsername].has_key(aGestureName)):
             mySet = self.myStore["TrainingSets"][aUsername]
             mySet[aGestureName] = []
             myUSet = self.myStore["TrainingSets"]
             myUSet[aUsername] = mySet
             self.myStore["TrainingSets"] = myUSet
+
+        dataSet = []
+        for i, item in enumerate(ListOfBytes):
+            filename = "Database/" + aUsername + "_" + aGestureName + "_" + str(i + len(self.myStore["TrainingSets"][aUsername][aGestureName])) + ".wav"
+            WriteWaveFile(filename, item, Stream.num_channels,
+                          Stream.samp_width, Stream.sample_rate)
+            dataSet.append(filename)
         
         data = self.myStore["TrainingSets"][aUsername]
         for i in dataSet:
@@ -94,7 +94,7 @@ class Persistence:
             if(i >= len(self.myStore["TrainingSets"][aUsername][aGestureName])): break
             if(not os.path.exists(self.myStore["TrainingSets"][aUsername][aGestureName][i])):
                 print "Path ( " + self.myStore["TrainingSets"][aUsername][aGestureName][i] + " ) does not exist. Removing DB Record"
-                del self.myStore["TrainingSets"][aUsername][aGestureName][i]
+                i = i + 1
             else: 
                 path = self.myStore["TrainingSets"][aUsername][aGestureName][i]
                 print "Playing Back " + path
@@ -180,7 +180,7 @@ def RunStreamingClassifier(aStream, ampThreshold, executeCommand, log):
                 frames += data
             elif (frames != ""):
                 if(not log):
-                    frames = numpy.array(wave.struct.unpack("%dh"%(len(frames)/aStream.samp_width)))
+                    frames = numpy.array(wave.struct.unpack("%dh"%(len(frames)/aStream.samp_width), frames))
                 executeCommand(frames)
                 frames = ""
     except KeyboardInterrupt:
@@ -224,7 +224,7 @@ def RunClassifier(persist, aUsername):
     classifier = AudioMath.AudioClassifier(aParams)
     
     with StreamObject(.1) as myStream:
-        RunStreamingClassifier(myStream, 1000, lambda data : AudioClassifer.Classify(data))
+        RunStreamingClassifier(myStream, 1000, lambda data : classifier.Classify(data), False)
         
 if __name__ == "__main__":
     persist = Persistence("Database/BasicAudioDB")
