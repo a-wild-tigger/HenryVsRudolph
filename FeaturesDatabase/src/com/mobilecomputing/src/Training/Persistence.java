@@ -1,8 +1,7 @@
-package com.threegear.apps.demos;
+package com.mobilecomputing.src.Training;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
-import com.sun.xml.internal.fastinfoset.util.StringArray;
 import com.threegear.gloveless.network.PoseMessage;
 
 import java.io.*;
@@ -12,8 +11,8 @@ public class Persistence {
     private final String theDirectoryName;
     private final String theConfigurationName;
 
-    private Map<String, Map<String, StaticGesture>> theStaticGestureMap = new HashMap<String, Map<String, StaticGesture>>();
     private Map<String, Map<String, ContinuousGesture>> theContinuousGestureMap = new HashMap<String, Map<String, ContinuousGesture>>();
+    private Map<String, Map<String, StaticGesture>> theStaticGestureMap = new HashMap<String, Map<String, StaticGesture>>();
     private Set<String> theUserSet = new HashSet<String>();
 
     public Persistence(String aDirectoryName, String aConfigurationName) {
@@ -21,56 +20,33 @@ public class Persistence {
         theConfigurationName = aConfigurationName;
     }
 
-    public Set<String> GetRegisteredUsers() {
-        return theUserSet;
-    }
-
-    private Set<String> GetStaticGestures(String aUserName) {
-        if(!theStaticGestureMap.containsKey(aUserName)) {
-            return new HashSet<String>();
-        }
-
-        else return theStaticGestureMap.get(aUserName).keySet();
-    }
-
-    private Set<String> GetContinuousGestures(String aUserName) {
-        if(!theContinuousGestureMap.containsKey(aUserName)) {
-            return new HashSet<String>();
-        }
-
-        else return theContinuousGestureMap.get(aUserName).keySet();
-    }
-
-    private StaticGesture GetStaticGesture(String aUsername, String aGestureName) {
-        return theStaticGestureMap.get(aUsername).get(aGestureName);
-    }
-
-    private ContinuousGesture GetContinuousGesture(String aUsername, String aGestureName) {
-        return theContinuousGestureMap.get(aUsername).get(aGestureName);
-    }
-
-    // We store config information as User,Gesture,Static/Continuous,Path
+    // We store config information as User,Gesture,Static/Continuous
     public void Start() throws IOException {
         File theDir = new File(theDirectoryName, theConfigurationName);
-        CSVReader reader = new CSVReader(new FileReader(theDir));
+        CSVReader reader = new CSVReader(new FileReader(theDir), ',');
         String [] nextLine;
         while ((nextLine = reader.readNext()) != null) {
             String aUserName = nextLine[0];
             String aGestureName = nextLine[1];
             String aStaticOrCTS = nextLine[2];
-            String aPath = nextLine[3];
 
-            if(aStaticOrCTS == "Static") {
+            if(aStaticOrCTS.equals("Static")) {
                 if(!theStaticGestureMap.containsKey(aUserName)) {
                     theStaticGestureMap.put(aUserName, new HashMap<String, StaticGesture>());
                 }
-                theStaticGestureMap.get(aUserName).put(aGestureName, StaticGesture.BuildGesture(new File(theDirectoryName, aPath)));
+
+                StaticGesture aGesture = StaticGesture.BuildGesture(aUserName, aGestureName, theDirectoryName);
+                theStaticGestureMap.get(aUserName).put(aGestureName, aGesture);
                 theUserSet.add(aUserName);
-            } else if(aStaticOrCTS == "Continuous") {
+            }
+
+            if(aStaticOrCTS.equals("Continuous")) {
                 if(!theContinuousGestureMap.containsKey(aUserName)) {
                     theContinuousGestureMap.put(aUserName, new HashMap<String, ContinuousGesture>());
                 }
-                theContinuousGestureMap.get(aUserName).put(aGestureName, ContinuousGesture.BuildGesture(new File(theDirectoryName, aPath)));
+
+                ContinuousGesture aGesture = ContinuousGesture.BuildGesture(aUserName, aGestureName, theDirectoryName);
+                theContinuousGestureMap.get(aUserName).put(aGestureName, aGesture);
                 theUserSet.add(aUserName);
             }
         }
@@ -78,16 +54,15 @@ public class Persistence {
         reader.close();
     }
 
-    public void SaveAll() throws IOException {
+    public void Stop() throws IOException {
         File theDir = new File(theDirectoryName, theConfigurationName);
-        CSVWriter writer = new CSVWriter(new FileWriter(theDir), '\t');
+        CSVWriter writer =  new CSVWriter(new FileWriter(theDir), ',');
 
         for (String aUser : theStaticGestureMap.keySet()) {
             Map<String, StaticGesture> aGesture = theStaticGestureMap.get(aUser);
             for (String aGestureName : aGesture.keySet()) {
                 StaticGesture aInfo = aGesture.get(aGestureName);
-                File aPath = aInfo.getPath();
-                String[] entries = (aUser + "#" + aGestureName + "#Static#" + aPath).split("#");
+                String[] entries = (aUser + "#" + aGestureName + "#Static").split("#");
                 writer.writeNext(entries);
 
                 if(aInfo.isDirty()) {
@@ -96,12 +71,11 @@ public class Persistence {
             }
         }
 
-        for(String aUser : theContinuousGestureMap.keySet()) {
+        for (String aUser : theContinuousGestureMap.keySet()) {
             Map<String, ContinuousGesture> aGesture = theContinuousGestureMap.get(aUser);
             for (String aGestureName : aGesture.keySet()) {
                 ContinuousGesture aInfo = aGesture.get(aGestureName);
-                String aPath = aInfo.getPath();
-                String[] entries = (aUser + "#" + aGestureName + "#Static#" + aPath).split("#");
+                String[] entries = (aUser + "#" + aGestureName + "#Continuous").split("#");
                 writer.writeNext(entries);
 
                 if(aInfo.isDirty()) {
@@ -113,39 +87,61 @@ public class Persistence {
         writer.close();
     }
 
-    public void Stop() {
-        theStaticGestureMap = new HashMap<String, Map<String, StaticGesture>>();
-        theContinuousGestureMap = new HashMap<String, Map<String, ContinuousGesture>>();
-        theUserSet = new HashSet<String>();
-    }
-
     public void CreateUser(String aUsername) {
         theUserSet.add(aUsername);
         theStaticGestureMap.put(aUsername, new HashMap<String, StaticGesture>());
-        theContinuousGestureMap.put(aUsername, new HashMap<String, ContinuousGesture>());
-    }
-
-    public void PushStaticGestures(String username, String gestureName, List<PoseMessage> myMessagesToSave) {
-        //To change body of created methods use File | Settings | File Templates.
     }
 
     public boolean DoesUserExist(String myUserName) {
-        return false;  //To change body of created methods use File | Settings | File Templates.
+        return theUserSet.contains(myUserName);
     }
 
-    public List<String> GetAvailableGestures(String theCurrentUser) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+    public void PushStaticGestures(String username, String gestureName, List<PoseMessage> myMessagesToSave) {
+        if(!theStaticGestureMap.containsKey(username)) {
+            theStaticGestureMap.put(username, new HashMap<String, StaticGesture>());
+        }
+
+        if(!theStaticGestureMap.get(username).containsKey(gestureName)) {
+            StaticGesture myGesture = StaticGesture.CreateNewGestureFile(username, gestureName, theDirectoryName);
+            theStaticGestureMap.get(username).put(gestureName, myGesture);
+        }
+
+        theStaticGestureMap.get(username).get(gestureName).AddToMessageSet(myMessagesToSave);
+    }
+
+    public Set<String> GetAvailableGestures(String theCurrentUser) {
+        return theStaticGestureMap.get(theCurrentUser).keySet();
     }
 
     public boolean UserHasGesture(String theCurrentUser, String aGestureReq) {
-        return false;  //To change body of created methods use File | Settings | File Templates.
+        return theStaticGestureMap.get(theCurrentUser).containsKey(aGestureReq);
     }
 
     public List<PoseMessage> GetStaticGestureSet(String theCurrentUser, String aGestureReq) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        return theStaticGestureMap.get(theCurrentUser).get(aGestureReq).GetGestureSet();
     }
 
     public void SetStaticGestureSet(String theCurrentUser, String aGestureReq, List<PoseMessage> theMessages) {
+        theStaticGestureMap.get(theCurrentUser).get(aGestureReq).SetMessageSet(theMessages);
+    }
+
+    public void PushContinuousGestures(String theCurrentUser, String myGesture, List<List<PoseMessage>> myMessagesToSave) {
+        //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public Set<String> GetAvailableContinuousGestures(String theCurrentUser) {
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public boolean UserHasContinuousGesture(String theCurrentUser, String aGestureReq) {
+        return false;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public List<PoseMessage> GetContinousGestureSet(String theCurrentUser, String aGestureReq) {
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public void SetContinousGestureSet(String theCurrentUser, String aGestureReq, List<List<PoseMessage>> theMessages) {
         //To change body of created methods use File | Settings | File Templates.
     }
 }

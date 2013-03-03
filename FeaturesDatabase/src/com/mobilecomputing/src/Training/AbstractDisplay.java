@@ -1,10 +1,7 @@
-package com.mobilecomputing.src.inout.output;
+package com.mobilecomputing.src.Training;
 
-import com.threegear.apps.demos.WorkspaceRenderingHelpers;
-import com.threegear.gloveless.network.HandTrackingAdapter;
-import com.threegear.gloveless.network.HandTrackingClient;
 import com.threegear.gloveless.network.HandTrackingMessage;
-import com.threegear.gloveless.network.PoseMessage;
+import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.glu.GLU;
@@ -12,29 +9,14 @@ import org.lwjgl.util.glu.GLU;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
 
-import java.util.List;
-
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glColor3f;
 
-public class StaticGestureRecorder extends HandTrackingAdapter {
-    private static final int DISPLAY_FRAMERATE = 60;
-    private boolean finished;
-
-
-
-
-
-    private HandTrackingClient client;
-
-
-
-
+public class AbstractDisplay {
     // Cache the hand positions, rotations and contact state for rendering
-    private Matrix4f[][] jointFrames = new Matrix4f[HandTrackingMessage.N_HANDS][HandTrackingMessage.N_JOINTS];
-    private Point3f[][] fingerTips = new Point3f[HandTrackingMessage.N_HANDS][HandTrackingMessage.N_FINGERS];
+    public Matrix4f[][] jointFrames = new Matrix4f[HandTrackingMessage.N_HANDS][HandTrackingMessage.N_JOINTS];
+    public Point3f[][] fingerTips = new Point3f[HandTrackingMessage.N_HANDS][HandTrackingMessage.N_FINGERS];
 
-    public StaticGestureRecorder() {
+    public AbstractDisplay() {
         for (int i=0; i<jointFrames.length; i++)
             for (int j=0; j<jointFrames[0].length; j++) {
                 jointFrames[i][j] = new Matrix4f();
@@ -47,26 +29,8 @@ public class StaticGestureRecorder extends HandTrackingAdapter {
             }
     }
 
-    public static void main(String[] args) {
-        StaticGestureRecorder demo = new StaticGestureRecorder();
-        try {
-            demo.init();
-            demo.run();
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-        } finally {
-            demo.cleanup();
-        }
-    }
-
-    private void init() throws Exception {
-        // Initialize the client listener and connect to server
-        client = new HandTrackingClient();
-        client.addListener(this);
-        client.connect();
-
-        // Setup the window frame
-        Display.setTitle("Draw Skeleton Demo");
+    public void Init() throws LWJGLException {
+        Display.setTitle("Recorder System");
         int width = 900;
         int height = 600;
         Display.setDisplayMode(new DisplayMode(width, height));
@@ -74,7 +38,7 @@ public class StaticGestureRecorder extends HandTrackingAdapter {
 
         // Setup the OpenGL state.  Our world is measured in millimeters
         glMatrixMode(GL_PROJECTION);
-        GLU.gluPerspective(45, width / (float) height, 10, 10000);
+        GLU.gluPerspective(55, width / (float) height, 10, 10000);
         glMatrixMode(GL_MODELVIEW);
         GLU.gluLookAt(0, 450, 550, 0, 125, 0, 0, 1, 0);
         glViewport(0, 0, width, height);
@@ -83,45 +47,6 @@ public class StaticGestureRecorder extends HandTrackingAdapter {
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
-    }
-
-    /**
-     * The "main loop"
-     */
-    private void run() {
-        while (!finished) {
-            // Always call Window.update(), all the time
-            Display.update();
-
-            if (Display.isCloseRequested()) {
-                // Check for O/S close requests
-                finished = true;
-            } else {
-                render();
-                Display.sync(DISPLAY_FRAMERATE);
-            }
-        }
-    }
-
-    private void cleanup() {
-        client.stop();
-        Display.destroy();
-    }
-
-    /**
-     * Draw a ground plane and cursors for each hand
-     */
-    private synchronized void render() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glColor3f(1,1,1);
-
-        WorkspaceRenderingHelpers.drawGroundPlane(50);
-
-        for (int iHand=0; iHand<2; iHand++) {
-            drawSkeleton(jointFrames[iHand], fingerTips[iHand]);
-        }
-
-        glEnd();
     }
 
     private static void drawLineBetween(Matrix4f frame0, Matrix4f frame1) {
@@ -138,7 +63,7 @@ public class StaticGestureRecorder extends HandTrackingAdapter {
         glEnd();
     }
 
-    public static void drawSkeleton(Matrix4f[] jointFrames, Point3f[] fingerTips) {
+    protected static void drawSkeleton(Matrix4f[] jointFrames, Point3f[] fingerTips) {
         // Draw the coordinate frame for each joint
         for (int i=0; i<jointFrames.length; i++) {
             WorkspaceRenderingHelpers.drawCoordinateFrame(jointFrames[i], 5);
@@ -221,28 +146,21 @@ public class StaticGestureRecorder extends HandTrackingAdapter {
         drawLineBetween(jointFrames[16], fingerTips[4]);
     }
 
-    @Override
-    public synchronized void handleEvent(HandTrackingMessage rawMessage) {
-        // Cache the coordinate frames and finger tips of the skeleton for rendering
-        if (rawMessage.getType() == HandTrackingMessage.MessageType.POSE) {
-            PoseMessage message = (PoseMessage) rawMessage;
-            for (int iHand=0; iHand<jointFrames.length; iHand++) {
-                Matrix4f[] jointFrames = message.getJointFrames(iHand);
-                for (int jJoint=0; jJoint<jointFrames.length; jJoint++) {
-                    this.jointFrames[iHand][jJoint].set(jointFrames[jJoint]);
-                }
-            }
+    public void render() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glColor3f(1,1,1);
 
-            for (int iHand=0; iHand<fingerTips.length; iHand++) {
-                for (int jFinger=0; jFinger<fingerTips[0].length; jFinger++) {
-                    Point3f[] fingerTips = message.getFingerTips(iHand);
-                    this.fingerTips[iHand][jFinger].set(fingerTips[jFinger]);
-                }
-            }
+        WorkspaceRenderingHelpers.drawGroundPlane(50);
+
+        for (int iHand=0; iHand<2; iHand++) {
+            drawSkeleton(jointFrames[iHand], fingerTips[iHand]);
         }
+
+        glEnd();
     }
 
-    public List<PoseMessage> Record() {
-
+    public void Stop() {
+        Display.destroy();
     }
+
 }

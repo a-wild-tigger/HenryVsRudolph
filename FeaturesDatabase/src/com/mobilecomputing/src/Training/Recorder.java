@@ -1,4 +1,4 @@
-package com.threegear.apps.demos;
+package com.mobilecomputing.src.Training;
 
 import com.threegear.gloveless.network.*;
 import org.lwjgl.LWJGLException;

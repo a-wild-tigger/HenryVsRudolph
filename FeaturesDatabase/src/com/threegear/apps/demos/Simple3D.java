@@ -18,6 +18,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
+import com.mobilecomputing.src.Training.WorkspaceRenderingHelpers;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.glu.GLU;
