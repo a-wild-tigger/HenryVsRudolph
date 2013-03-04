@@ -1,13 +1,11 @@
 import MFCC, numpy
 import scipy.spatial.distance as dist
 
-METHOD = 2
-
 class AudioClassifier ():
     def __init__ (self, params):
        self.params = params
 
-    def Classify (self, sample, method = METHOD):
+    def Classify (self, sample, verbose = True):
       length = len (sample)
       features = MFCC.extract (numpy.frombuffer (sample, numpy.int16))
       gestures = {}
@@ -18,9 +16,10 @@ class AudioClassifier ():
           for i in range (min (len (features), len (tsample))):
             total_distance += dist.euclidean (features[i], tsample[i])
           d.append (total_distance/float (i))
-        score = numpy.mean (d)
+        score = numpy.min (d)
         gestures[gesture] = score
-        print "Gesture %s: %f" % (gesture, score)
+        if(verbose):
+            print "Gesture %s: %f" % (gesture, score)
         try:
           if (score < minimum):
             minimum = score
@@ -28,12 +27,15 @@ class AudioClassifier ():
         except:
           minimum = score
           lowest = gesture
-      print "Identified %s with score of %f." % (lowest, minimum)
-
-def GenerateParams (gestures):
+      if(verbose):
+        print "Identified %s with score of %f." % (lowest, minimum)
+      return lowest
+      
+def GenerateParams (gestures, verbose = True):
   params = {}
   for gesture in gestures:
-    print "Processing " + gesture
+    if(verbose):
+      print "Processing " + gesture
     l = []
     for sample in gestures[gesture]:
       l.append (MFCC.extract (numpy.frombuffer (sample, numpy.int16)))
