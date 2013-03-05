@@ -40,7 +40,11 @@ public class BasicMessage extends HandTrackingMessage {
         new HandState(positionLeft, rotationLeft, clickCountLeft),
         new HandState(positionRight, rotationRight, clickCountRight) };
   }
-  
+
+  public BasicMessage GetBasicMessage() {
+      return this;
+  }
+
   /**
    * @param message
    */

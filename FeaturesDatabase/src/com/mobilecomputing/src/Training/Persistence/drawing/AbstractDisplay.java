@@ -1,14 +1,19 @@
-package com.mobilecomputing.src.Training.Persistence;
+package com.mobilecomputing.src.Training.Persistence.drawing;
 
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
+import com.mobilecomputing.src.Training.Training.SimpleText;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.GLU;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.TrueTypeFont;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
+
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -30,6 +35,7 @@ public class AbstractDisplay {
             }
     }
 
+    private TrueTypeFont font;
     public void Init() throws LWJGLException {
         Display.setTitle("Recorder System");
         int width = 900;
@@ -48,6 +54,9 @@ public class AbstractDisplay {
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
+
+        java.awt.Font awtFont = new java.awt.Font("Times New Roman", java.awt.Font.BOLD, 24);
+        font = new TrueTypeFont(awtFont, true);
     }
 
     private static void drawLineBetween(Matrix4f frame0, Matrix4f frame1) {
@@ -103,7 +112,9 @@ public class AbstractDisplay {
 
         glEnd();
 
+
         if(DrawRect) {
+
             DrawSimpleRectangle();
         }
 
@@ -203,7 +214,8 @@ public class AbstractDisplay {
             drawSkeleton(jointFrames[iHand], fingerTips[iHand]);
         }
 
-        glEnd();
+
+        SimpleText.drawString("T  h i s  i s  a  T e s  t", 10, 10);
     }
 
     public void Stop() {

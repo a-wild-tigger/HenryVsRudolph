@@ -27,10 +27,26 @@ public class PoseMessage extends BasicMessage {
     this.handPoseConfidences = handPoseConfidences;
   }
 
+  public Vector3f[] GetJointTranslations(int hand) {
+      return this.jointTranslations[hand];
+  }
+
+  public Quat4f[][] GetJointRotations() {
+      return this.jointRotations;
+  }
+
+  public float[] GetConfidenceEstimates() {
+      return this.confidenceEstimates;
+  }
+
+  public float[][] GetHandPoseConfidences() {
+      return this.handPoseConfidences;
+  }
+
   protected float[] confidenceEstimates = new float[N_HANDS];
-  
+
   public float getConfidenceEstimate(int hand) { return confidenceEstimates[hand]; }
-  
+
   protected Quat4f[][] jointRotations = new Quat4f[N_HANDS][N_JOINTS];
   protected Vector3f[][] jointTranslations = new Vector3f[N_HANDS][N_JOINTS];
   

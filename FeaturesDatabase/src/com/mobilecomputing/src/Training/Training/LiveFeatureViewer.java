@@ -1,7 +1,8 @@
-package com.mobilecomputing.src.Training.Persistence;
+package com.mobilecomputing.src.Training.Training;
 
 import com.mobilecomputing.src.Training.Persistence.drawing.AbstractDisplay;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingAdapter;
+import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import org.lwjgl.LWJGLException;
@@ -9,14 +10,24 @@ import org.lwjgl.opengl.Display;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Recorder extends HandTrackingAdapter {
+public class LiveFeatureViewer extends HandTrackingAdapter {
     private static final int DISPLAY_FRAMERATE = 60;
     private boolean finished = false;
-    private final List<PoseMessage> theDataSet = new ArrayList<PoseMessage>();
-    private final AbstractDisplay myDisplay = new AbstractDisplay();
+    public final AbstractDisplay myDisplay = new AbstractDisplay();
+
+    public static void main(String[] args) throws LWJGLException, IOException {
+        LiveFeatureViewer demo = new LiveFeatureViewer();
+
+        HandTrackingClient myClient = new HandTrackingClient();
+        myClient.addListener(demo);
+        myClient.connect();
+        demo.Run();
+        myClient.stop();
+    }
 
     @Override
     public void handleEvent(HandTrackingMessage rawMessage) {
@@ -41,8 +52,6 @@ public class Recorder extends HandTrackingAdapter {
                     }
                 }
             }
-
-            theDataSet.add(message);
         }
     }
 
@@ -62,9 +71,5 @@ public class Recorder extends HandTrackingAdapter {
             }
         }
         myDisplay.Stop();
-    }
-
-    public List<PoseMessage> GetMessages() {
-        return theDataSet;
     }
 }

@@ -1,5 +1,6 @@
 package com.mobilecomputing.src.Training.Persistence;
 
+import com.mobilecomputing.src.Training.Persistence.drawing.AbstractDisplay;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
