@@ -145,6 +145,7 @@ public class Persistence {
     }
 
     public Set<String> GetAvailableGestures(String theCurrentUser) {
+        if(!theStaticGestureMap.containsKey(theCurrentUser)) { return new HashSet<String>(); }
         return theStaticGestureMap.get(theCurrentUser).keySet();
     }
 
