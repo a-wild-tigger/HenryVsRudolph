@@ -55,7 +55,7 @@ public class Recorder extends HandTrackingAdapter {
                 finished = true;
             } else {
                 synchronized (myDisplay) {
-                    myDisplay.render();
+                    myDisplay.render("");
                 }
 
                 Display.sync(DISPLAY_FRAMERATE);

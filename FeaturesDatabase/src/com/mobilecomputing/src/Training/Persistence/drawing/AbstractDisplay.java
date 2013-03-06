@@ -2,14 +2,11 @@ package com.mobilecomputing.src.Training.Persistence.drawing;
 
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
-import com.mobilecomputing.src.Training.Training.SimpleText;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.GLU;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.TrueTypeFont;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
@@ -35,28 +32,17 @@ public class AbstractDisplay {
             }
     }
 
-    private TrueTypeFont font;
+    int width;
+    int height;
     public void Init() throws LWJGLException {
         Display.setTitle("Recorder System");
-        int width = 900;
-        int height = 600;
+        width = 900;
+        height = 600;
         Display.setDisplayMode(new DisplayMode(width, height));
         Display.create();
 
         // Setup the OpenGL state.  Our world is measured in millimeters
-        glMatrixMode(GL_PROJECTION);
-        GLU.gluPerspective(55, width / (float) height, 10, 10000);
-        glMatrixMode(GL_MODELVIEW);
-        GLU.gluLookAt(0, 450, 550, 0, 125, 0, 0, 1, 0);
         glViewport(0, 0, width, height);
-
-        glEnable(GL_LIGHT0);
-        glEnable(GL_COLOR_MATERIAL);
-        glEnable(GL_CULL_FACE);
-        glEnable(GL_DEPTH_TEST);
-
-        java.awt.Font awtFont = new java.awt.Font("Times New Roman", java.awt.Font.BOLD, 24);
-        font = new TrueTypeFont(awtFont, true);
     }
 
     private static void drawLineBetween(Matrix4f frame0, Matrix4f frame1) {
@@ -114,7 +100,6 @@ public class AbstractDisplay {
 
 
         if(DrawRect) {
-
             DrawSimpleRectangle();
         }
 
@@ -204,18 +189,57 @@ public class AbstractDisplay {
         drawLineBetween(jointFrames[16], fingerTips[4]);
     }
 
-    public void render() {
+    protected  void make2D(String aString) {
+        //Remove the Z axis
+
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glPushMatrix();
+        GL11.glLoadIdentity();
+        GL11.glOrtho(0, width, 0, height, -1, 1);
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPushMatrix();
+        GL11.glLoadIdentity();
+
+        glColor3f(1,1,1);
+        glPointSize(1);
+        SimpleText.drawString(aString, 10, height - 20);
+    }
+
+    protected void make3D() {
+        //Restore the Z axis
+
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        glLoadIdentity();
+        GLU.gluPerspective(55, width / (float) height, 10, 10000);
+        //GL11.glPopMatrix();
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        glLoadIdentity();
+        GLU.gluLookAt(0, 450, 550, 0, 125, 0, 0, 1, 0);
+
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glColor3f(1,1,1);
-
         WorkspaceRenderingHelpers.drawGroundPlane(50);
 
         for (int iHand=0; iHand<2; iHand++) {
             drawSkeleton(jointFrames[iHand], fingerTips[iHand]);
         }
+    }
 
+    public void render(String aString) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glColor3f(1,1,1);
 
-        SimpleText.drawString("T  h i s  i s  a  T e s  t", 10, 10);
+        make3D();
+        if(aString != "") {
+            make2D(aString);
+        }
     }
 
     public void Stop() {

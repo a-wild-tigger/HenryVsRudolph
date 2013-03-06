@@ -5,6 +5,9 @@ import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingAdapt
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
+import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageDistance;
+import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageStretch;
+import com.mobilecomputing.src.Training.Training.FeatureExtractors.HandInteraction;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 
@@ -29,6 +32,12 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
         myClient.stop();
     }
 
+    String myLeftAppendagesDistance;
+    String myRightAppendagesDistance;
+    String myLeftStretch;
+    String myRightStretch;
+    String myHandInteraction;
+
     @Override
     public void handleEvent(HandTrackingMessage rawMessage) {
         // Cache the coordinate frames and finger tips of the skeleton for rendering
@@ -51,6 +60,13 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                         fingerTips[iHand][jFinger].set(fingerTip[jFinger]);
                     }
                 }
+
+                myLeftStretch = new AppendageStretch(message, 0).toString();
+                myRightStretch = new AppendageStretch(message, 1).toString();
+
+                myLeftAppendagesDistance = new AppendageDistance(message, 0).toString();
+                myRightAppendagesDistance = new AppendageDistance(message, 1).toString();
+                myHandInteraction = new HandInteraction(message).toString();
             }
         }
     }
@@ -64,7 +80,12 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                 finished = true;
             } else {
                 synchronized (myDisplay) {
-                    myDisplay.render();
+                    String myString = "";
+                    if(myRightStretch != null) {
+                        myDisplay.render(myRightStretch);
+                    } else {
+                        myDisplay.render(myString);
+                    }
                 }
 
                 Display.sync(DISPLAY_FRAMERATE);

@@ -1,6 +1,7 @@
 package com.mobilecomputing.src.Training.Training.FeatureExtractors;
 
 import javax.vecmath.*;
+import java.text.DecimalFormat;
 
 public class VectorOps {
     public static Vector2d SubtractVector(Vector2d aFirstVector, Vector2d aSecondVector) {
@@ -22,5 +23,24 @@ public class VectorOps {
     public static double Distance(Vector3f aVector, Vector3f vector3f) {
         Point3f myPoint = new Point3f(aVector.x, aVector.y, aVector.z);
         return Distance(vector3f, myPoint);
+    }
+
+    public static DecimalFormat df = new DecimalFormat("##.00");
+    public static String RenderRotation(Quat4f theLeftHandRotation) {
+        float w = theLeftHandRotation.getW();
+        float x = theLeftHandRotation.getX();
+        float y = theLeftHandRotation.getY();
+        float z = theLeftHandRotation.getZ();
+
+        return "Angle, X, Y, Z = " + df.format(w) + " , " + df.format(x) + " , " + df.format(y) + " , " + df.format(z) +  "\n";
+    }
+
+
+    public static Quat4f InverseMultipy(Quat4f aQuat, Quat4f aQuat1) {
+        Quat4f aQuatTemp = (Quat4f) aQuat.clone();
+        aQuatTemp.inverse();
+
+        aQuatTemp.mul(aQuat1);
+        return aQuatTemp;
     }
 }

@@ -1,4 +1,4 @@
-package com.mobilecomputing.src.Training.Training;
+package com.mobilecomputing.src.Training.Persistence.drawing;
 
 import org.lwjgl.opengl.GL11;
 
