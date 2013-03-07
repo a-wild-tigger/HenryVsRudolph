@@ -43,4 +43,15 @@ public class VectorOps {
         aQuatTemp.mul(aQuat1);
         return aQuatTemp;
     }
+
+    public static Vector3f Multiply(Quat4f aQuat) {
+        double aAngle = (2 * Math.acos(aQuat.getW()));
+        double c = Math.cos(aAngle);
+        double s = Math.sin(aAngle);
+        double ax = aQuat.x;
+        double ay = aQuat.y;
+        double az = aQuat.z;
+
+        return new Vector3f((float) (c + ax*ax*(1-c)), (float) (ay*ax*(1-c)+az*s), (float) (az*ax*(1-c)-ay*s));
+    }
 }

@@ -25,10 +25,10 @@ public class AppendageStretch {
         Quat4f aQuat = (Quat4f) aMessage.getHandState(aHand).getRotation().clone();
         Quat4f[] aJointRotations = aMessage.GetJointRotations()[aHand].clone();
 
-        theHandQuat = VectorOps.InverseMultipy(aQuat, aQuat);
+        theHandQuat = aQuat;
         theThumbQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[4]);
-        theIndexQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[7]);
-        theMiddleQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[10]);
+        theIndexQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[6]);
+        theMiddleQuat = aJointRotations[9];
         theRingQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[13]);
         thePinkyQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[16]);
 
@@ -52,6 +52,6 @@ public class AppendageStretch {
                 ", theIndexQuat = " + VectorOps.RenderRotation(theIndexQuat) +
                 ", theMiddleQuat = " + VectorOps.RenderRotation(theMiddleQuat) +
                 ", theRingQuat = " + VectorOps.RenderRotation(theRingQuat) +
-                ", thePinkyQuat = " + VectorOps.RenderRotation(thePinkyQuat);
+                ", theHandQuat = " + VectorOps.RenderRotation(theHandQuat);
     }
 }
