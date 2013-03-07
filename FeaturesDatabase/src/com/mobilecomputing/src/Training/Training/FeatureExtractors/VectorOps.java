@@ -4,13 +4,13 @@ import javax.vecmath.*;
 import java.text.DecimalFormat;
 
 public class VectorOps {
-    public static Vector2d SubtractVector(Vector2d aFirstVector, Vector2d aSecondVector) {
-        Vector2d myVector = (Vector2d) aFirstVector.clone();
+    public static Vector3f SubtractVector(Vector3f aFirstVector, Vector3f aSecondVector) {
+        Vector3f myVector = (Vector3f) aFirstVector.clone();
         myVector.sub(aSecondVector);
         return myVector;
     }
 
-    public static Vector2d VectorVelocity(Vector2d aFirstVector, Vector2d aSecondVector) {
+    public static Vector3f VectorVelocity(Vector3f aFirstVector, Vector3f aSecondVector) {
         return SubtractVector(aSecondVector, aFirstVector);
     }
 
