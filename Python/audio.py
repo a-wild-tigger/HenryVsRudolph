@@ -1,6 +1,28 @@
 import MFCC, numpy
 import scipy.spatial.distance as dist
 
+def DynamicTimeWarp(aSequence1, aSequence2, mfccDistFunction):
+    firstLen = len(aSequence1)
+    secondLen = len(aSequence2)
+    
+    myTable = numpy.empty((firstLen, secondLen))
+    myTable[(0,0)] = mfccDistFunction(aSequence1[0], aSequence2[0])
+    
+    for row in range(1,firstLen):
+        myTable[row][0] = mfccDistFunction(aSequence1[row], aSequence2[0]) + myTable[row - 1][0]
+    
+    for col in range(1,secondLen):
+        myTable[0][col] = mfccDistFunction(aSequence1[0], aSequence2[col]) + myTable[0][col - 1]
+        
+    for row in range(1, firstLen):
+        for col in range(1, secondLen):
+            myTable[row][col] = mfccDistFunction(aSequence1[row], aSequence2[col]) + \
+                                  min(myTable[row - 1][col],
+                                      myTable[row - 1][col - 1],
+                                      myTable[row][col - 1])
+                                      
+    return myTable[firstLen - 1][secondLen - 1]
+    
 class AudioClassifier ():
     def __init__ (self, params):
        self.params = params
@@ -14,7 +36,7 @@ class AudioClassifier ():
         for tsample in self.params[gesture]:
           total_distance = 0
           for i in range (min (len (features), len (tsample))):
-            total_distance += dist.euclidean (features[i], tsample[i])
+            total_distance += dist.cityblock(features[i], tsample[i])
           d.append (total_distance/float (i))
         score = numpy.min (d)
         gestures[gesture] = score
@@ -27,8 +49,8 @@ class AudioClassifier ():
         except:
           minimum = score
           lowest = gesture
-      if(verbose):
-        print "Identified %s with score of %f." % (lowest, minimum)
+      print "Identified %s with score of %f." % (lowest, minimum)
+      if(minimum > 12): return None
       return lowest
       
 def GenerateParams (gestures, verbose = True):

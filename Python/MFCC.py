@@ -14,6 +14,10 @@
 ###############################################################################
 #   Feel free to customize the parameters on Lines 67 - 79.
 ###############################################################################
+#
+# Modded to perform normalization before extraction
+#
+################################################################################
 
 from numpy import *
 from numpy.linalg import *
@@ -85,6 +89,13 @@ def extract(x, show = False):
     if x.ndim > 1:
         print "INFO: Input signal has more than 1 channel; the channels will be averaged."
         x = mean(x, axis=1)
+    
+    # Normalize the Sequence First
+    total = 0.0
+    for i in x: total += i**2
+    total = sqrt(total / len(x))
+    x = x / total
+    
     frames = (len(x) - FRAME_LEN) / FRAME_SHIFT + 1
     feature = []
     for f in range(frames):
