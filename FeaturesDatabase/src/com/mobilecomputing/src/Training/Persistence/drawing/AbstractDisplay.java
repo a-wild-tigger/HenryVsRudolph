@@ -73,6 +73,19 @@ public class AbstractDisplay {
     }
 
     public void RenderCurrent(PoseMessage message, boolean DrawRect) {
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        glLoadIdentity();
+        GLU.gluPerspective(55, width / (float) height, 10, 10000);
+        //GL11.glPopMatrix();
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        glLoadIdentity();
+        GLU.gluLookAt(0, 450, 550, 0, 125, 0, 0, 1, 0);
+
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glColor3f(1,1,1);
 
