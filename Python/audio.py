@@ -35,10 +35,16 @@ class AudioClassifier ():
         d = []
         for tsample in self.params[gesture]:
           total_distance = 0
+          smpl_length = len(tsample)
+          
+          if(numpy.abs(length - smpl_length) <= 0):
+             continue
+          
           for i in range (min (len (features), len (tsample))):
             total_distance += dist.cityblock(features[i], tsample[i])
+          
           d.append (total_distance/float (i))
-        score = numpy.min (d)
+        score = numpy.min(d)
         gestures[gesture] = score
         if(verbose):
             print "Gesture %s: %f" % (gesture, score)
@@ -49,9 +55,12 @@ class AudioClassifier ():
         except:
           minimum = score
           lowest = gesture
-      print "Identified %s with score of %f." % (lowest, minimum)
-      if(minimum > 12): return None
-      return lowest
+      if verbose:
+         print lowest, minimum
+      if(minimum < 12):
+        return lowest
+      else:
+        return None
       
 def GenerateParams (gestures, verbose = True):
   params = {}
@@ -63,3 +72,4 @@ def GenerateParams (gestures, verbose = True):
       l.append (MFCC.extract (numpy.frombuffer (sample, numpy.int16)))
     params[gesture] = l
   return params
+ 

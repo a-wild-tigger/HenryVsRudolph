@@ -55,4 +55,27 @@ public class AppendageDistance {
 
         theHand = aHand;
     }
+
+    @Override
+    public String toString() {
+        return "AppendageDistance{" +
+                "\nThumbToIndexDistance = " + VectorOps.RenderDouble(ThumbToIndexDistance) +
+                "\nThumbToMiddleDistance = " + VectorOps.RenderDouble(ThumbToMiddleDistance) +
+                "\nThumbToRingDistance = " + VectorOps.RenderDouble(ThumbToRingDistance) +
+                "\nThumbToPinkyDistance = " + VectorOps.RenderDouble(ThumbToPinkyDistance) +
+                "\nThumbToWristDistance = " + VectorOps.RenderDouble(ThumbToWristDistance) +
+                "\nIndexToMiddleDistance = " + VectorOps.RenderDouble(IndexToMiddleDistance) +
+                "\nIndexToWristDistance = " + VectorOps.RenderDouble(IndexToWristDistance) +
+                "\nMiddleToRingDistance = " + VectorOps.RenderDouble(MiddleToRingDistance) +
+                "\nMiddleToWristDistance = " + VectorOps.RenderDouble(MiddleToWristDistance) +
+                "\nRingToPinkyDistance = " + VectorOps.RenderDouble(RingToPinkyDistance) +
+                "\nRingToWristDistance = " + VectorOps.RenderDouble(RingToWristDistance) +
+                "\nPinkyToWristDistance = " + VectorOps.RenderDouble(PinkyToWristDistance) +
+                "\ntheHand = " + VectorOps.RenderDouble(theHand);
+    }
+
+    public boolean isFist() {
+        return (ThumbToIndexDistance < 60 && ThumbToMiddleDistance < 60 &&
+                ThumbToPinkyDistance < 60 && ThumbToRingDistance < 60);
+    }
 }

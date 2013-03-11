@@ -62,13 +62,17 @@ public class MinorityReport extends HandTrackingAdapter {
             Vector2d myVec = new Vector2d(aMagnitude * myQuat.getX(), aMagnitude * myQuat.getY());
 
             Vector3f myUnit = VectorOps.Multiply(myQuat);
-
-
+            //System.out.println(myUnit.toString());
             Vector2d myProjection = new Vector2d(aMagnitude * myUnit.x, aMagnitude * myUnit.y);
             myProjection.add(myVec);
 
+            if(hand.getClickCount() == 1) {
+            //    System.out.println("Click");
+                //robot.mousePress(InputEvent.BUTTON1_MASK);
+            }
             //System.out.println(aShiftedXCoord);
-            robot.mouseMove((int) myProjection.x, (int) myProjection.y);
+
+            robot.mouseMove((int) (myProjection.x + myXcoordinate), (int) (myProjection.y + myYcoordinate));
             //System.out.println(myProjection.x + " : " +  myProjection.y);
 
             /*switch (message.getType()) {

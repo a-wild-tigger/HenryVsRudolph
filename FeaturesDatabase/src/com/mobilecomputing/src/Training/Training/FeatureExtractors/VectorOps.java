@@ -35,6 +35,9 @@ public class VectorOps {
         return "Angle, X, Y, Z = " + df.format(w) + " , " + df.format(x) + " , " + df.format(y) + " , " + df.format(z) +  "\n";
     }
 
+    public static String RenderDouble(double aValue) {
+        return df.format(aValue);
+    }
 
     public static Quat4f InverseMultipy(Quat4f aQuat, Quat4f aQuat1) {
         Quat4f aQuatTemp = (Quat4f) aQuat.clone();
@@ -45,13 +48,19 @@ public class VectorOps {
     }
 
     public static Vector3f Multiply(Quat4f aQuat) {
+        //System.out.println(VectorOps.RenderRotation(aQuat));
         double aAngle = (2 * Math.acos(aQuat.getW()));
         double c = Math.cos(aAngle);
         double s = Math.sin(aAngle);
         double ax = aQuat.x;
         double ay = aQuat.y;
         double az = aQuat.z;
+        Vector3f myVec = new Vector3f((float) (1 * (c + ax*ax*(1-c))), (float) (1 * (ay*ax*(1-c)+az*s)), (float) (1 * (az*ax*(1-c)-ay*s)));
+        System.out.println(myVec.toString());
+        return myVec;
+    }
 
-        return new Vector3f((float) (c + ax*ax*(1-c)), (float) (ay*ax*(1-c)+az*s), (float) (az*ax*(1-c)-ay*s));
+    public static Vector3f VectorVelocity(Point3f startFingerTip, Point3f endFingerTip) {
+        return new Vector3f(endFingerTip.x - startFingerTip.x, endFingerTip.y - startFingerTip.y, endFingerTip.z - startFingerTip.z);
     }
 }

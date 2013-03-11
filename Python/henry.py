@@ -7,6 +7,8 @@ import cPickle
 import audio
 import pdb
 import os
+import sys
+import socket
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -14,7 +16,19 @@ CHANNELS = 2
 RATE = 16000
 RECORD_SECONDS = 5
 THRESHOLD = 1000
-username = "default"
+HOST = "localhost"
+PORT = 11111
+
+try:
+    username = sys.argv[1]
+except:
+    username = "default"
+
+try:
+    method = sys.argv[2]
+except:
+    method = "default"
+    
 verbose = True
 
 p = pyaudio.PyAudio()
@@ -40,7 +54,10 @@ def main (user="default", method="default"):
     db = cPickle.load (open ("database", "rb"))
   except:
     db = {}
-
+    
+  if (method == "live"):
+    run_classify (user, False)
+    
   if (user == "default"):
     username = raw_input ("Username: ")
     if (not db.has_key (username)):
@@ -130,14 +147,14 @@ def run_record (username):
     playv(gesture)
 
 def run_train (username):
-  params = audio.GenerateParams(db[username]["gestures"])
+  params = audio.GenerateParams(db[username]["gestures"], verbose)
   db[username]["params"] = params
   db[username]["trained"] = True
 
-def run_classify (username):
+def run_classify (username, verbose = True):
   frames = ""
   classifier = audio.AudioClassifier (db[username]["params"])
-  Run_On_Every_Frame(lambda frames : classifier.Classify(frames))
+  Run_On_Every_Frame(lambda frames : SendString (classifier.Classify(frames, verbose)))
 
 def run_play (username):
   gesturename = raw_input ("Gesture name: ")
@@ -267,14 +284,21 @@ def Run_On_Every_Frame(execute):
       data = stream.read (CHUNK)
       amplitude = audioop.rms (data, 2)
       if (amplitude >= THRESHOLD):
-        printv("Amplitude: " + str(amplitude))
+        #printv("Amplitude: " + str(amplitude))
         frames += data
       elif (len (frames) > 0):
         execute(frames)
         frames = ""
   except KeyboardInterrupt:
     return
-  
+    
+def SendString (string):
+  if (string != None):
+    client_socket = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
+    print username+"_"+string
+    client_socket.sendto (username+"_"+string, (HOST, PORT))
+    client_socket.close ()
+    
 def printv (string):
   if (verbose):
     print string
@@ -286,7 +310,8 @@ def playv(audio):
 try:
   ret = 1
   while(ret != 0):
-    ret = main(username)
+    ret = main (username, method)
+
 except KeyboardInterrupt:
   raise
 finally:

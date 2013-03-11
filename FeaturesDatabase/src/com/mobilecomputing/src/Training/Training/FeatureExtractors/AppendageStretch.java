@@ -28,7 +28,7 @@ public class AppendageStretch {
         theHandQuat = aQuat;
         theThumbQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[4]);
         theIndexQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[6]);
-        theMiddleQuat = aJointRotations[9];
+        theMiddleQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[9]);
         theRingQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[13]);
         thePinkyQuat = VectorOps.InverseMultipy(aQuat, aJointRotations[16]);
 
@@ -37,6 +37,35 @@ public class AppendageStretch {
         isIndexFingerStretched = (theIndexQuat.getW() > .92);
         isRingFingerStretched = (theRingQuat.getW() > .92);
         isPinkyFingerStretched = (thePinkyQuat.getW() > .92);
+    }
+
+    public boolean isFacingMonitor() {
+        return (theHandQuat.getY() > .5) && (theHandQuat.getY() <= .72) &&
+               (theHandQuat.getZ() <= .72) && (theHandQuat.getZ() > .5);
+    }
+
+    public boolean isFacingCieling() {
+        return (theHandQuat.getW() <= .1);
+    }
+
+    public boolean isFacingRight() {
+        return (theHandQuat.getW() <=.6) && (theHandQuat.getW() >= .4) && (theHandQuat.getZ() > .3) && (theHandQuat.getZ() <=.8);
+    }
+
+    public boolean isFacingLeft() {
+        return (theHandQuat.getW() < .7) && (theHandQuat.getW() >= .2) && (theHandQuat.getZ() < -.3) && (theHandQuat.getZ() > -.8);
+    }
+
+    public boolean isHandFlat() {
+        return isMiddleFingerStretched && isIndexFingerStretched;
+    }
+
+    public boolean isPointGesture() {
+        return isMiddleFingerStretched && !(isIndexFingerStretched);
+    }
+
+    public boolean isFireGunGesture() {
+        return isPointGesture() && !(isThumbStretched);
     }
 
     @Override

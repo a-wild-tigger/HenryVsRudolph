@@ -64,6 +64,7 @@ def dctmtx(n):
     Return the DCT-II matrix of order n as a numpy array.
     """
     x,y = meshgrid(range(n), range(n))
+    
     D = sqrt(2.0/n) * cos(pi * (2*x+1) * y / (2*n))
     D[0] /= sqrt(2)
     return D
@@ -91,10 +92,10 @@ def extract(x, show = False):
         x = mean(x, axis=1)
     
     # Normalize the Sequence First
-    total = 0.0
-    for i in x: total += i**2
-    total = sqrt(total / len(x))
-    x = x / total
+    #total = 0.0
+    #for i in x: total += i**2
+    #total = sqrt(total / len(x))
+    #x = x / total
     
     frames = (len(x) - FRAME_LEN) / FRAME_SHIFT + 1
     feature = []

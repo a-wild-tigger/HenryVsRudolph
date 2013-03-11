@@ -8,6 +8,7 @@ import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageDistance;
 import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageStretch;
 import com.mobilecomputing.src.Training.Training.FeatureExtractors.HandInteraction;
+import com.mobilecomputing.src.Training.Training.FeatureExtractors.VectorOps;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 
@@ -32,11 +33,11 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
         myClient.stop();
     }
 
-    String myLeftAppendagesDistance;
-    String myRightAppendagesDistance;
-    String myLeftStretch;
-    String myRightStretch;
-    String myHandInteraction;
+    AppendageDistance myLeftAppendagesDistance;
+    AppendageDistance myRightAppendagesDistance;
+    AppendageStretch myLeftStretch;
+    AppendageStretch myRightStretch;
+    HandInteraction myHandInteraction;
 
     @Override
     public void handleEvent(HandTrackingMessage rawMessage) {
@@ -61,12 +62,12 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                     }
                 }
 
-                myLeftStretch = new AppendageStretch(message, 0).toString();
-                myRightStretch = new AppendageStretch(message, 1).toString();
+                myLeftStretch = new AppendageStretch(message, 0);
+                myRightStretch = new AppendageStretch(message, 1);
 
-                myLeftAppendagesDistance = new AppendageDistance(message, 0).toString();
-                myRightAppendagesDistance = new AppendageDistance(message, 1).toString();
-                myHandInteraction = new HandInteraction(message).toString();
+                myLeftAppendagesDistance = new AppendageDistance(message, 0);
+                myRightAppendagesDistance = new AppendageDistance(message, 1);
+                myHandInteraction = new HandInteraction(message);
             }
         }
     }
@@ -82,7 +83,7 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                 synchronized (myDisplay) {
                     String myString = "";
                     if(myRightStretch != null) {
-                        myDisplay.render(myRightStretch);
+                        myDisplay.render("Quat Info: " + VectorOps.RenderRotation(myLeftStretch.theHandQuat) + "\nRight Info: " + myRightAppendagesDistance.isFist());
                     } else {
                         myDisplay.render(myString);
                     }
