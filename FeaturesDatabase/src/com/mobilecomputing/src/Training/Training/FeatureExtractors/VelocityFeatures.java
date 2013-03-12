@@ -33,4 +33,36 @@ public class VelocityFeatures {
         theRingDeltaVector = VectorOps.VectorVelocity(startFingerTips[3], endFingerTips[3]);
         thePinkyDeltaVector = VectorOps.VectorVelocity(startFingerTips[4], endFingerTips[4]);
     }
+
+    @Override
+    public String toString() {
+        return  "\nHand Delta Vector = " + VectorOps.RenderVector(theHandDeltaVector) +
+                "\nMiddle Delta Vector = " + VectorOps.RenderVector(theMiddleDeltaVector) +
+                "\nIndex Delta Vector = " + VectorOps.RenderVector(theIndexDeltaVector) +
+                "\nMoving Positive X = " + MovingInNegativeXDirection();
+    }
+
+    public boolean MovingInPositiveYDirection() {
+        return theHandDeltaVector.y > 10;
+    }
+
+    public boolean MovingInPositiveZDirection() {
+        return theHandDeltaVector.z > 10;
+    }
+
+    public boolean MovingInPositiveXDirection() {
+        return theHandDeltaVector.x > 10;
+    }
+
+    public boolean MovingInNegativeYDirection() {
+        return theHandDeltaVector.y > -10;
+    }
+
+    public boolean MovingInNegativeZDirection() {
+        return theHandDeltaVector.z > -10;
+    }
+
+    public boolean MovingInNegativeXDirection() {
+        return theHandDeltaVector.x < -10;
+    }
 }

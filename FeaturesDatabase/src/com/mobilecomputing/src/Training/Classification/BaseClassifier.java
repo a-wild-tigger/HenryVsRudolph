@@ -61,28 +61,42 @@ public class BaseClassifier implements HandTrackingListener {
             AppendageDistance aLeftDistances = new AppendageDistance(aPose, 0);
             AppendageDistance aRightDistances = new AppendageDistance(aPose, 1);
             VelocityFeatures aLeftVelocityFeatures = new VelocityFeatures(aFirstPoseMessage, aPose, 0);
-            VelocityFeatures aRightVelocityFeatures = new VelocityFeatures(aFirstPoseMessage, aPose, 0);
+            VelocityFeatures aRightVelocityFeatures = new VelocityFeatures(aFirstPoseMessage, aPose, 1);
             HandInteraction aHandInteraction = new HandInteraction(aPose);
 
-            if(aHandInteraction.theHandsDistance < 100 && aLeftStretch.isHandFlat() && aRightStretch.isHandFlat()
-               && aLeftStretch.isFacingMonitor() && aRightStretch.isFacingMonitor()) {
+            if(aHandInteraction.theHandsDistance < 100 && aLeftStretch.isHandFlat() && aRightStretch.isHandFlat() &&
+                  aLeftVelocityFeatures.MovingInNegativeZDirection() && aRightVelocityFeatures.MovingInNegativeZDirection()) {
                 System.out.println("Detected Hadouken");
             }
 
-            if((aLeftStretch.isFacingCieling() && aLeftStretch.isHandFlat()) && !aLeftStretch.isFacingMonitor()) {
+            if((aLeftStretch.isFacingCieling() && aLeftStretch.isHandFlat()) && !aLeftStretch.isFacingMonitor()
+                    && aLeftVelocityFeatures.theMiddleDeltaVector.length() > 5) {
                 System.out.println("Left Detected Ball Opening");
             }
 
-            if((aRightStretch.isFacingCieling() && aRightStretch.isHandFlat()) && !aRightStretch.isFacingMonitor()) {
-                System.out.println("Left Detected Ball Opening");
+            if((aRightStretch.isFacingCieling() && aRightStretch.isHandFlat()) && !aRightStretch.isFacingMonitor()
+                    && aRightVelocityFeatures.theMiddleDeltaVector.length() > 5) {
+                System.out.println("Right Detected Ball Opening");
+            }
+
+            if(aLeftDistances.isFist() && aLeftVelocityFeatures.MovingInPositiveXDirection()) {
+                System.out.println("Left Fist Detected");
+            }
+
+            if(aRightDistances.isFist() && aRightVelocityFeatures.MovingInNegativeXDirection()) {
+                System.out.println("Right Fist Detected");
+            }
+
+            if(aRightStretch.isFireGunGesture()) {
+                System.out.println("Fire Gun Right Hand");
             }
 
             if(aLeftStretch.isFacingRight()) {
-                System.out.println("Left Hand Facing Right");
+                //System.out.println("Left Hand Facing Right");
             }
 
             if(aRightStretch.isFacingLeft()) {
-                System.out.println("Right Hand Facing Left");
+                //System.out.println("Right Hand Facing Left");
             }
 
             aFirstPoseMessage = aPose;

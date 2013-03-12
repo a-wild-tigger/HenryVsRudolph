@@ -63,4 +63,9 @@ public class VectorOps {
     public static Vector3f VectorVelocity(Point3f startFingerTip, Point3f endFingerTip) {
         return new Vector3f(endFingerTip.x - startFingerTip.x, endFingerTip.y - startFingerTip.y, endFingerTip.z - startFingerTip.z);
     }
+
+    public static String RenderVector(Vector3f theMiddleDeltaVector) {
+        return "X, Y, Z : " + RenderDouble(theMiddleDeltaVector.x) + " , " + RenderDouble(theMiddleDeltaVector.y)
+                    + " , " + RenderDouble(theMiddleDeltaVector.z);
+    }
 }

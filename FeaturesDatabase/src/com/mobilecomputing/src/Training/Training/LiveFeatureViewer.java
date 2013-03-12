@@ -5,10 +5,7 @@ import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingAdapt
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
-import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageDistance;
-import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageStretch;
-import com.mobilecomputing.src.Training.Training.FeatureExtractors.HandInteraction;
-import com.mobilecomputing.src.Training.Training.FeatureExtractors.VectorOps;
+import com.mobilecomputing.src.Training.Training.FeatureExtractors.*;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 
@@ -33,6 +30,10 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
         myClient.stop();
     }
 
+    boolean myOldSet = false;
+    PoseMessage myOldMessage;
+    VelocityFeatures myLeftVelocityFeatures;
+    VelocityFeatures myRightVelocityFeatures;
     AppendageDistance myLeftAppendagesDistance;
     AppendageDistance myRightAppendagesDistance;
     AppendageStretch myLeftStretch;
@@ -44,6 +45,12 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
         // Cache the coordinate frames and finger tips of the skeleton for rendering
         if (rawMessage.getType() == HandTrackingMessage.MessageType.POSE) {
             PoseMessage message = (PoseMessage) rawMessage;
+            if(!myOldSet) {
+                myOldMessage = message;
+                myOldSet = true;
+                return;
+            }
+
             synchronized (myDisplay) {
                 Matrix4f[][] jointFrames = myDisplay.jointFrames;
                 Point3f[][] fingerTips = myDisplay.fingerTips;
@@ -62,12 +69,17 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                     }
                 }
 
+
                 myLeftStretch = new AppendageStretch(message, 0);
                 myRightStretch = new AppendageStretch(message, 1);
+
+                myLeftVelocityFeatures = new VelocityFeatures(myOldMessage, message, 0);
+                myRightVelocityFeatures = new VelocityFeatures(myOldMessage, message, 1);
 
                 myLeftAppendagesDistance = new AppendageDistance(message, 0);
                 myRightAppendagesDistance = new AppendageDistance(message, 1);
                 myHandInteraction = new HandInteraction(message);
+                myOldMessage = message;
             }
         }
     }
@@ -83,7 +95,7 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                 synchronized (myDisplay) {
                     String myString = "";
                     if(myRightStretch != null) {
-                        myDisplay.render("Quat Info: " + VectorOps.RenderRotation(myLeftStretch.theHandQuat) + "\nRight Info: " + myRightAppendagesDistance.isFist());
+                        myDisplay.render(myRightVelocityFeatures.toString());
                     } else {
                         myDisplay.render(myString);
                     }
