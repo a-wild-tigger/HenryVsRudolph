@@ -1,4 +1,4 @@
-package com.mobilecomputing.src.Training.Classification;
+package com.mobilecomputing.src.Training.Examples;
 
 import org.joda.time.DateTime;
 

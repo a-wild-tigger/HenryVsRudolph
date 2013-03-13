@@ -1,34 +1,50 @@
-package com.mobilecomputing.src.Training.Training;
+package com.mobilecomputing.src.Training.Classification;
 
-import com.mobilecomputing.src.Training.Classification.UDPClient;
 import com.mobilecomputing.src.Training.Persistence.drawing.AbstractDisplay;
-import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingAdapter;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
+import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingListener;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
+import com.mobilecomputing.src.Training.Training.ContinuousTrainedParameters;
 import com.mobilecomputing.src.Training.Training.FeatureExtractors.*;
+import com.mobilecomputing.src.Training.Training.HMMModels.HMMModel;
+import com.mobilecomputing.src.Training.Training.HMMModels.Viterbi;
+import com.mobilecomputing.src.Training.Training.StaticTrainedParameters;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class LiveFeatureViewer extends HandTrackingAdapter {
+public class ContinuousClassifier implements HandTrackingListener {
     private static final int DISPLAY_FRAMERATE = 60;
     private boolean finished = false;
     public final AbstractDisplay myDisplay = new AbstractDisplay();
 
-    public static void main(String[] args) throws LWJGLException, IOException {
-        LiveFeatureViewer demo = new LiveFeatureViewer();
-
+    public static void Run(String aUsername, ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) throws LWJGLException, IOException {
         HandTrackingClient myClient = new HandTrackingClient();
-        myClient.addListener(demo);
+        ContinuousClassifier myClassifier = new ContinuousClassifier(aUsername, myCTSParams, myStaticParams);
+        myClient.addListener(myClassifier);
         myClient.connect();
-        demo.Run();
+        myClassifier.Run();
         myClient.stop();
+    }
+
+    String aUser;
+    ContinuousTrainedParameters theCTSParams;
+    StaticTrainedParameters theStaticParams;
+    Map<String, Viterbi> theViterbiMap = new HashMap<String, Viterbi>();
+    public ContinuousClassifier(String aUsername, ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) {
+        aUser = aUsername;
+        theCTSParams = myCTSParams;
+        theStaticParams = myStaticParams;
+
+        for (String s : myCTSParams.theSerializableMap.keySet()) {
+            theViterbiMap.put(s, (Viterbi) myCTSParams.theSerializableMap.get(s));
+        }
     }
 
     boolean myOldSet = false;
@@ -102,46 +118,31 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
             VelocityFeatures aRightVelocityFeatures = new VelocityFeatures(myOldMessage, message, 1);
             HandInteraction aHandInteraction = new HandInteraction(message);
 
-            if(aHandInteraction.theHandsDistance < 100 &&
-                    aLeftVelocityFeatures.MovingInNegativeZDirection()) {
-                System.out.println("Detected Hadouken");
-                UDPClient.SendString(aUsername, "hadouken");
+            int codePoint = HMMModel.GenerateCodePoint(myOldMessage, message, 1);
+            for (String s : theViterbiMap.keySet()) {
+                theViterbiMap.get(s).insert(codePoint);
             }
 
-            if((aLeftStretch.isFacingCieling() && aLeftStretch.isHandFlat()) && !aLeftStretch.isFacingMonitor()
-                    && aLeftVelocityFeatures.theMiddleDeltaVector.length() > 3 && message.getHandState(0).getPosition().y > 60) {
-                System.out.println("Left Detected Ball Opening");
-                UDPClient.SendString(aUsername, "explosion");
-            }
-
-            if((aRightStretch.isFacingCieling() && aRightStretch.isHandFlat()) && !aRightStretch.isFacingMonitor()
-                    && aRightVelocityFeatures.theMiddleDeltaVector.length() > 5 && message.getHandState(1).getPosition().y > 60) {
-                //System.out.println("Right Detected Ball Opening");
-            }
-
-            if(aLeftDistances.isFist() && aLeftVelocityFeatures.MovingInPositiveXDirection() && message.getHandState(0).getPosition().y > 60) {
-                //System.out.println("Left Fist Detected");
-            }
-
-            if(aRightDistances.isFist() && aRightVelocityFeatures.MovingInNegativeXDirection() && message.getHandState(1).getPosition().y > 100) {
-                System.out.println("Right Fist Detected");
-                UDPClient.SendString(aUsername, "screenpunch");
-            }
-
-            if(aRightStretch.isFireGunGesture() && message.getHandState(1).getPosition().y > 60) {
-                //System.out.println("Fire Gun Right Hand");
-            }
-
-            if(aLeftStretch.isFacingRight()) {
-                //System.out.println("Left Hand Facing Right");
-            }
-
-            if(aRightStretch.isFacingLeft()) {
-                //System.out.println("Right Hand Facing Left");
-            }
-
+            theViterbiScores = GetScores();
             myOldMessage = message;
         }
+    }
+
+    String theViterbiScores = "";
+    private String GetScores() {
+        StringBuilder myBuilder = new StringBuilder();
+        for (String s : theViterbiMap.keySet()) {
+            Viterbi aViterbi = theViterbiMap.get(s);
+            double aScore = aViterbi.prevChain[aViterbi.maxLikelihood()];
+            myBuilder.append(s + " : ( Estimated State, Likelihood ) = ( " + aViterbi.maxLikelihood() + " , " + VectorOps.RenderDouble(aScore) + " )\n");
+        }
+
+        return myBuilder.toString();
+    }
+
+    @Override
+    public void handleConnectionClosed() {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
 
@@ -164,7 +165,7 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                 synchronized (myDisplay) {
                     String myString = "";
                     if(myRightStretch != null) {
-                        myDisplay.render("Left: " + myRightVelocityFeatures.toString() + "\n\nRight: " + myLeftVelocityFeatures.toString());
+                        myDisplay.render("Left: " + myRightVelocityFeatures.toString() + "\n\nRight: " + myLeftVelocityFeatures.toString() + "\n" + theViterbiScores );
                     } else {
                         myDisplay.render(myString);
                     }

@@ -2,84 +2,78 @@ package com.mobilecomputing.src.Training.Training.HMMModels;
 
 import be.ac.ulg.montefiore.run.jahmm.*;
 import be.ac.ulg.montefiore.run.jahmm.learn.BaumWelchLearner;
+import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 
+import javax.vecmath.Point3f;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HMMModel {
-    public static Hmm<ObservationInteger> LearnModel(List<List<PoseMessage>> aSetOfGestures) {
-        List<List<ObservationInteger>> aIntegerSet = new ArrayList<List<ObservationInteger>>();
-        for (List<PoseMessage> aSetOfGesture : aSetOfGestures) {
-            PoseMessage aOldMessage = aSetOfGesture.get(0);
-            List<ObservationInteger> aCodesSet = new ArrayList<ObservationInteger>();
-            for(int i = 1; i < aSetOfGesture.size(); i++) {
-                PoseMessage aNewMessage = aSetOfGesture.get(i);
-                int aCode = CodePoints.GenerateCodePoint(aOldMessage, aNewMessage, 1);
-                aOldMessage = aNewMessage;
-                ObservationInteger aInteger = new ObservationInteger(aCode);
-                aCodesSet.add(aInteger);
-            }
+    public static int GenerateCodePoint(PoseMessage aStart, PoseMessage aEnd, int aHand) {
+        Point3f myStart = aStart.getFingerTips(aHand)[1];
+        Point3f myEnd = aEnd.getFingerTips(aHand)[1];
 
-            aIntegerSet.add(aCodesSet);
-        }
+        double xPosEnd = myEnd.x;
+        double xPosStart = myStart.x;
 
-        Hmm<ObservationInteger> aUntrainedHMM = LearnDataSet();
-        BaumWelchLearner bwl = new BaumWelchLearner();
-        Hmm<ObservationInteger> learntHMM = bwl.learn(aUntrainedHMM, aIntegerSet);
-        return learntHMM;
+        double yPosEnd = myEnd.y;
+        double yPosStart = myStart.y;
+        double aValue = (yPosEnd - yPosStart) / (xPosEnd - xPosStart);
+
+        double aAngle = Math.atan(aValue);
+        double aAngle2 = (aAngle > 0 ? aAngle : (2*Math.PI + aAngle)) * 360 / (2*Math.PI);
+
+        if(aAngle2 == 360) { return 0; }
+        return (int) (aAngle2 / 20);
     }
 
-    public static Hmm<ObservationInteger> LearnDataSet() {
-        OpdfIntegerFactory factory = new OpdfIntegerFactory(10);
-        Hmm<ObservationInteger> hmm = new Hmm<ObservationInteger>(5, factory);
-
-        hmm.setPi(0, 1);
-        hmm.setPi(1, 0);
-        hmm.setPi(2, 0);
-        hmm.setPi(3, 0);
-        hmm.setPi(4, 0);
-
-        for(int i = 0; i!=5; i++) {
-            double[] myArray = new double[18];
-            for (int j = 0; j < myArray.length; j++) {
-                myArray[j] = 1/18;
+    public static Viterbi LearnModel(List<List<PoseMessage>> aSetOfGestures) {
+        int[][] aTrainingSet = new int[aSetOfGestures.size()][];
+        for(int i = 0; i != aSetOfGestures.size(); i++) {
+            List<PoseMessage> aSetOfGesture = aSetOfGestures.get(i);
+            PoseMessage aOldMessage = aSetOfGesture.get(0);
+            aTrainingSet[i] = new int[aSetOfGesture.size() - 1];
+            for(int j = 0; j < aSetOfGesture.size() - 1; j++) {
+                PoseMessage aNewMessage = aSetOfGesture.get(j);
+                int aCode = GenerateCodePoint(aOldMessage, aNewMessage, 1);
+                aTrainingSet[i][j] = aCode;
             }
-
-            hmm.setOpdf(i, new OpdfInteger(myArray));
         }
 
-        double aVal = .5;
-        hmm.setAij(0, 0, aVal);
-        hmm.setAij(0, 1, 1-aVal);
-        hmm.setAij(0, 2, 0);
-        hmm.setAij(0, 3, 0);
-        hmm.setAij(0, 4, 0);
+        int numStates = 5;
+        int sigma = 18;
+        double a = .5;
 
-        hmm.setAij(1, 0, 0);
-        hmm.setAij(1, 1, aVal);
-        hmm.setAij(1, 2, 1-aVal);
-        hmm.setAij(1, 3, 0);
-        hmm.setAij(1, 4, 0);
+        HMM myHmm = new HMM(numStates, sigma);
 
-        hmm.setAij(2, 0, 0);
-        hmm.setAij(2, 1, 0);
-        hmm.setAij(2, 2, aVal);
-        hmm.setAij(2, 3, 1-aVal);
-        hmm.setAij(2, 4, 0);
+        // We always start in state 0
+        myHmm.pi[0] = 1;
 
-        hmm.setAij(3, 0, 0);
-        hmm.setAij(3, 1, 0);
-        hmm.setAij(3, 2, 0);
-        hmm.setAij(3, 3, aVal);
-        hmm.setAij(3, 4, 1-aVal);
+        // We use uniform random emission probabilities
+        for(int i = 0; i != 5; i++) {
+            for(int j = 0; j != sigma; j++) {
+                myHmm.b[i][j] = 1/(float)sigma;
+            }
+        }
 
-        hmm.setAij(4, 0, 0);
-        hmm.setAij(4, 1, 0);
-        hmm.setAij(4, 2, 0);
-        hmm.setAij(4, 3, 0);
-        hmm.setAij(4, 4, 1);
+        // Set bidiagonal matrix
+        myHmm.a[0][0] = a;
+        myHmm.a[0][1] = 1-a;
 
-        return hmm;
+        myHmm.a[1][1] = a;
+        myHmm.a[1][2] = 1-a;
+
+        myHmm.a[2][2] = a;
+        myHmm.a[2][3] = 1-a;
+
+        myHmm.a[3][3] = a;
+        myHmm.a[3][4] = 1-a;
+
+        myHmm.a[4][4] = 1;
+
+        myHmm.train(aTrainingSet, 10);
+        assert(myHmm.validateModel());
+        return new Viterbi(myHmm);
     }
 }

@@ -1,7 +1,7 @@
 package com.mobilecomputing.src.Training.Persistence;
 
-import com.mobilecomputing.src.Training.Classification.BaseClassifier;
-import com.mobilecomputing.src.Training.Classification.BaseHMMClassifier;
+import com.mobilecomputing.src.Training.Classification.ContinuousClassifier;
+import com.mobilecomputing.src.Training.Classification.StaticClassifier;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import com.mobilecomputing.src.Training.Training.ContinuousTrainedParameters;
@@ -97,23 +97,21 @@ public class MainController {
                 case 7: RunRealtimeHMMClassifier(); break;
                 case 8: return false;
             }
-
-            thePersistence.Stop();
         }
 
         return true;
     }
 
-    private void RunRealtimeHMMClassifier() throws IOException, ClassNotFoundException {
+    private void RunRealtimeHMMClassifier() throws IOException, ClassNotFoundException, LWJGLException {
         ContinuousTrainedParameters myCTSParams = thePersistence.GetTrainedCTSParams(theCurrentUser);
         StaticTrainedParameters myStaticParams = thePersistence.GetTrainedStaticParams(theCurrentUser);
-        BaseHMMClassifier.Run(theCurrentUser, myCTSParams, myStaticParams);
+        ContinuousClassifier.Run(theCurrentUser, myCTSParams, myStaticParams);
     }
 
     private void RunRealtimeClassifier() throws IOException, ClassNotFoundException {
         ContinuousTrainedParameters myCTSParams = thePersistence.GetTrainedCTSParams(theCurrentUser);
         StaticTrainedParameters myStaticParams = thePersistence.GetTrainedStaticParams(theCurrentUser);
-        BaseClassifier.Run(theCurrentUser, myCTSParams, myStaticParams);
+        StaticClassifier.Run(theCurrentUser, myCTSParams, myStaticParams);
     }
 
     private void TrainModels() {
@@ -240,6 +238,11 @@ public class MainController {
     }
 
     private void Stop() throws IOException {
-        thePersistence.Stop();
+        System.out.println("Would you like to save changes to the Database Session? (y,n)");
+        String aValue = theInput.nextLine();
+        if(aValue.equals("y")) {
+            System.out.println("Saving Database");
+            thePersistence.Stop();
+        }
     }
 }
