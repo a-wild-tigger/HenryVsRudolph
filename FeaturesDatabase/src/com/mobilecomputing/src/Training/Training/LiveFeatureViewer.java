@@ -102,14 +102,14 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
             VelocityFeatures aRightVelocityFeatures = new VelocityFeatures(myOldMessage, message, 1);
             HandInteraction aHandInteraction = new HandInteraction(message);
 
-            if(aHandInteraction.theHandsDistance < 100 && aLeftStretch.isHandFlat() && aRightStretch.isHandFlat() &&
-                    aLeftVelocityFeatures.MovingInNegativeZDirection() && aRightVelocityFeatures.MovingInNegativeZDirection()) {
+            if(aHandInteraction.theHandsDistance < 100 &&
+                    aLeftVelocityFeatures.MovingInNegativeZDirection()) {
                 System.out.println("Detected Hadouken");
                 UDPClient.SendString(aUsername, "hadouken");
             }
 
             if((aLeftStretch.isFacingCieling() && aLeftStretch.isHandFlat()) && !aLeftStretch.isFacingMonitor()
-                    && aLeftVelocityFeatures.theMiddleDeltaVector.length() > 5 && message.getHandState(0).getPosition().y > 60) {
+                    && aLeftVelocityFeatures.theMiddleDeltaVector.length() > 3 && message.getHandState(0).getPosition().y > 60) {
                 System.out.println("Left Detected Ball Opening");
                 UDPClient.SendString(aUsername, "explosion");
             }

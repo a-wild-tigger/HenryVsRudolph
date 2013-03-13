@@ -9,6 +9,7 @@ import pdb
 import os
 import sys
 import socket
+from network import HOST, PORT
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -16,8 +17,6 @@ CHANNELS = 2
 RATE = 16000
 RECORD_SECONDS = 5
 THRESHOLD = 1000
-HOST = "localhost"
-PORT = 11111
 
 try:
     username = sys.argv[1]

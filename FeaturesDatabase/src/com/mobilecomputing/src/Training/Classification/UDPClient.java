@@ -7,8 +7,10 @@ import java.net.*;
 import java.util.Date;
 
 public class UDPClient {
+    private static int PORT = 11112;
     private boolean awake = false;
     private static DateTime restartOn = new DateTime();
+
     public static void main(String args[]) throws Exception {
         SendString("anil", "pow");
     }
@@ -23,7 +25,8 @@ public class UDPClient {
             InetAddress IPAddress = InetAddress.getByName("localhost");
             byte[] sendData = new byte[1024];
             sendData = (aUsername + "_" + aString).getBytes();
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 11111);
+            PORT = 11111;
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, PORT);
             clientSocket.send(sendPacket);
             clientSocket.close();
         } catch (UnknownHostException e) {

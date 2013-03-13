@@ -45,7 +45,7 @@ public class AppendageStretch {
     }
 
     public boolean isFacingCieling() {
-        return (theHandQuat.getW() <= .1);
+        return (theHandQuat.getW() <= .15);
     }
 
     public boolean isFacingRight() {

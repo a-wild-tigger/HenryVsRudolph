@@ -64,6 +64,6 @@ public class VelocityFeatures {
     }
 
     public boolean MovingInNegativeXDirection() {
-        return theHandDeltaVector.x < -10;
+        return theHandDeltaVector.x < -5;
     }
 }
