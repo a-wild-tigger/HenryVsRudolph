@@ -1,20 +1,41 @@
 package com.mobilecomputing.src.Training.Classification;
 
+import org.joda.time.DateTime;
+
 import java.io.*;
 import java.net.*;
+import java.util.Date;
 
 public class UDPClient {
+    private boolean awake = false;
+    private static DateTime restartOn = new DateTime();
     public static void main(String args[]) throws Exception {
         SendString("anil", "pow");
     }
 
-    public static void SendString(String aUsername, String aString) throws IOException {
-        DatagramSocket clientSocket = new DatagramSocket();
-        InetAddress IPAddress = InetAddress.getByName("localhost");
-        byte[] sendData = new byte[1024];
-        sendData = (aUsername + "_" + aString).getBytes();
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 21567);
-        clientSocket.send(sendPacket);
-        clientSocket.close();
+    public static void SendString(String aUsername, String aString) {
+        DateTime myCurrentDate = new DateTime();
+
+        if (myCurrentDate.isBefore(restartOn)) {
+            return;
+        }
+
+        try {
+            DatagramSocket clientSocket = new DatagramSocket();
+            InetAddress IPAddress = InetAddress.getByName("localhost");
+            byte[] sendData = new byte[1024];
+            sendData = (aUsername + "_" + aString).getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 21567);
+            clientSocket.send(sendPacket);
+            clientSocket.close();
+        sleep(1000)
+        awake = False
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

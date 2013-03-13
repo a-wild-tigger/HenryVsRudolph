@@ -1,9 +1,7 @@
 package com.mobilecomputing.src.Training.Training;
 
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
-import com.mobilecomputing.src.Training.Training.BuiltInGestures.Circle;
-import com.mobilecomputing.src.Training.Training.BuiltInGestures.Hadouken;
-import com.mobilecomputing.src.Training.Training.BuiltInGestures.Swipe;
+import com.mobilecomputing.src.Training.Training.HMMModels.HMMModel;
 import com.sun.xml.internal.ws.server.ServerRtException;
 
 import java.io.*;
@@ -42,9 +40,7 @@ public class ContinuousTrainedParameters implements Serializable {
 
         Map<String, Serializable> aSerializableMap = new HashMap<String, Serializable>();
         for (String aGestureName : myCTSFeatures.keySet()) {
-            if(aGestureName == "hadouken") {
-                aSerializableMap.put(aGestureName, Hadouken.Process(myCTSFeatures.get(aGestureName)));
-            }
+            aSerializableMap.put(aGestureName, HMMModel.LearnModel(myCTSFeatures.get(aGestureName)));
         }
 
         return new ContinuousTrainedParameters(myFile, aSerializableMap);

@@ -20,14 +20,16 @@ public class BaseClassifier implements HandTrackingListener {
     StaticTrainedParameters theStaticParams;
     public final Object myLock = new Object();
     public volatile boolean theVar = true;
+    public final String aUser;
 
-    public BaseClassifier(ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) {
+    public BaseClassifier(String aUsername, ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) {
+        aUser = aUsername;
         theCTSParams = myCTSParams;
         theStaticParams = myStaticParams;
     }
 
-    public static void Run(ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) {
-        BaseClassifier myClassifier = new BaseClassifier(myCTSParams, myStaticParams);
+    public static void Run(String aUser, ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) {
+        BaseClassifier myClassifier = new BaseClassifier(aUser, myCTSParams, myStaticParams);
         HandTrackingClient myClient = new HandTrackingClient();
 
         try {
@@ -56,6 +58,11 @@ public class BaseClassifier implements HandTrackingListener {
                 return;
             }
 
+            if(aPose.getHandState(0).getPosition().y < 90 && aPose.getHandState(1).getPosition().y < 90) {
+                aFirstPoseMessage = aPose;
+                return;
+            }
+
             AppendageStretch aLeftStretch = new AppendageStretch(aPose, 0);
             AppendageStretch aRightStretch = new AppendageStretch(aPose, 1);
             AppendageDistance aLeftDistances = new AppendageDistance(aPose, 0);
@@ -67,28 +74,31 @@ public class BaseClassifier implements HandTrackingListener {
             if(aHandInteraction.theHandsDistance < 100 && aLeftStretch.isHandFlat() && aRightStretch.isHandFlat() &&
                   aLeftVelocityFeatures.MovingInNegativeZDirection() && aRightVelocityFeatures.MovingInNegativeZDirection()) {
                 System.out.println("Detected Hadouken");
+                UDPClient.SendString(aUser, "hadouken");
             }
 
             if((aLeftStretch.isFacingCieling() && aLeftStretch.isHandFlat()) && !aLeftStretch.isFacingMonitor()
-                    && aLeftVelocityFeatures.theMiddleDeltaVector.length() > 5) {
+                    && aLeftVelocityFeatures.theMiddleDeltaVector.length() > 5 && aPose.getHandState(0).getPosition().y > 60) {
                 System.out.println("Left Detected Ball Opening");
+                UDPClient.SendString(aUser, "explosion");
             }
 
             if((aRightStretch.isFacingCieling() && aRightStretch.isHandFlat()) && !aRightStretch.isFacingMonitor()
-                    && aRightVelocityFeatures.theMiddleDeltaVector.length() > 5) {
-                System.out.println("Right Detected Ball Opening");
+                    && aRightVelocityFeatures.theMiddleDeltaVector.length() > 5 && aPose.getHandState(1).getPosition().y > 60) {
+                //System.out.println("Right Detected Ball Opening");
             }
 
-            if(aLeftDistances.isFist() && aLeftVelocityFeatures.MovingInPositiveXDirection()) {
-                System.out.println("Left Fist Detected");
+            if(aLeftDistances.isFist() && aLeftVelocityFeatures.MovingInPositiveXDirection() && aPose.getHandState(0).getPosition().y > 60) {
+                //System.out.println("Left Fist Detected");
             }
 
-            if(aRightDistances.isFist() && aRightVelocityFeatures.MovingInNegativeXDirection()) {
+            if(aRightDistances.isFist() && aRightVelocityFeatures.MovingInNegativeXDirection() && aPose.getHandState(1).getPosition().y > 60) {
                 System.out.println("Right Fist Detected");
+                UDPClient.SendString(aUser, "screenpunch");
             }
 
-            if(aRightStretch.isFireGunGesture()) {
-                System.out.println("Fire Gun Right Hand");
+            if(aRightStretch.isFireGunGesture() && aPose.getHandState(1).getPosition().y > 60) {
+                //System.out.println("Fire Gun Right Hand");
             }
 
             if(aLeftStretch.isFacingRight()) {

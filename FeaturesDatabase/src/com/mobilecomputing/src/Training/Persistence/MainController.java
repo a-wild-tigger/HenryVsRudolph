@@ -1,6 +1,7 @@
 package com.mobilecomputing.src.Training.Persistence;
 
 import com.mobilecomputing.src.Training.Classification.BaseClassifier;
+import com.mobilecomputing.src.Training.Classification.BaseHMMClassifier;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
 import com.mobilecomputing.src.Training.Persistence.threegears.PoseMessage;
 import com.mobilecomputing.src.Training.Training.ContinuousTrainedParameters;
@@ -76,12 +77,13 @@ public class MainController {
         System.out.println("\t3 : Record Continuous Gesture");
         System.out.println("\t4 : View/Edit Existing Continuous Gestures");
         System.out.println("\t5 : Train User Parameters");
-        System.out.println("\t6 : Run Realtime Classification");
-        System.out.println("\t7 : Quit");
+        System.out.println("\t6 : Run Realtime Classification (Non HMM)");
+        System.out.println("\t7 : Run HMM Classification");
+        System.out.println("\t8 : Quit");
 
         int aValue = theInput.nextInt();
         theInput.nextLine();
-        if(aValue > 7 || aValue <= 0) {
+        if(aValue > 8 || aValue <= 0) {
             System.out.println("Invalid Input.");
             return HomeScreen();
         } else {
@@ -92,17 +94,26 @@ public class MainController {
                 case 4: ViewEditContinuousGesture(); break;
                 case 5: TrainModels(); break;
                 case 6: RunRealtimeClassifier(); break;
-                case 7: return false;
+                case 7: RunRealtimeHMMClassifier(); break;
+                case 8: return false;
             }
+
+            thePersistence.Stop();
         }
 
         return true;
     }
 
+    private void RunRealtimeHMMClassifier() throws IOException, ClassNotFoundException {
+        ContinuousTrainedParameters myCTSParams = thePersistence.GetTrainedCTSParams(theCurrentUser);
+        StaticTrainedParameters myStaticParams = thePersistence.GetTrainedStaticParams(theCurrentUser);
+        BaseHMMClassifier.Run(theCurrentUser, myCTSParams, myStaticParams);
+    }
+
     private void RunRealtimeClassifier() throws IOException, ClassNotFoundException {
         ContinuousTrainedParameters myCTSParams = thePersistence.GetTrainedCTSParams(theCurrentUser);
         StaticTrainedParameters myStaticParams = thePersistence.GetTrainedStaticParams(theCurrentUser);
-        BaseClassifier.Run(myCTSParams, myStaticParams);
+        BaseClassifier.Run(theCurrentUser, myCTSParams, myStaticParams);
     }
 
     private void TrainModels() {
@@ -229,11 +240,6 @@ public class MainController {
     }
 
     private void Stop() throws IOException {
-        System.out.println("Would you like to save changes to the Database Session? (y,n)");
-        String aValue = theInput.nextLine();
-        if(aValue.equals("y")) {
-            System.out.println("Saving Database");
-            thePersistence.Stop();
-        }
+        thePersistence.Stop();
     }
 }
