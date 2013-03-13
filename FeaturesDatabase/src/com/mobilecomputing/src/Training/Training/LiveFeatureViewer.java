@@ -1,5 +1,6 @@
 package com.mobilecomputing.src.Training.Training;
 
+import com.mobilecomputing.src.Training.Classification.UDPClient;
 import com.mobilecomputing.src.Training.Persistence.drawing.AbstractDisplay;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingAdapter;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
@@ -40,6 +41,11 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
     AppendageStretch myRightStretch;
     HandInteraction myHandInteraction;
 
+    private boolean isInit = false;
+    private boolean FirstRound = true;
+    private PoseMessage aFirstPoseMessage;
+    private String aUsername = "anil";
+
     @Override
     public void handleEvent(HandTrackingMessage rawMessage) {
         // Cache the coordinate frames and finger tips of the skeleton for rendering
@@ -79,15 +85,78 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                 myLeftAppendagesDistance = new AppendageDistance(message, 0);
                 myRightAppendagesDistance = new AppendageDistance(message, 1);
                 myHandInteraction = new HandInteraction(message);
-                myOldMessage = message;
+
             }
+
+            if(message.getHandState(0).getPosition().y < 90 && message.getHandState(1).getPosition().y < 90) {
+                myOldMessage = message;
+                return;
+            }
+
+            AppendageStretch aLeftStretch = new AppendageStretch(message, 0);
+            AppendageStretch aRightStretch = new AppendageStretch(message, 1);
+            AppendageDistance aLeftDistances = new AppendageDistance(message, 0);
+            AppendageDistance aRightDistances = new AppendageDistance(message, 1);
+
+            VelocityFeatures aLeftVelocityFeatures = new VelocityFeatures(myOldMessage, message, 0);
+            VelocityFeatures aRightVelocityFeatures = new VelocityFeatures(myOldMessage, message, 1);
+            HandInteraction aHandInteraction = new HandInteraction(message);
+
+            if(aHandInteraction.theHandsDistance < 100 && aLeftStretch.isHandFlat() && aRightStretch.isHandFlat() &&
+                    aLeftVelocityFeatures.MovingInNegativeZDirection() && aRightVelocityFeatures.MovingInNegativeZDirection()) {
+                System.out.println("Detected Hadouken");
+                UDPClient.SendString(aUsername, "hadouken");
+            }
+
+            if((aLeftStretch.isFacingCieling() && aLeftStretch.isHandFlat()) && !aLeftStretch.isFacingMonitor()
+                    && aLeftVelocityFeatures.theMiddleDeltaVector.length() > 5 && message.getHandState(0).getPosition().y > 60) {
+                System.out.println("Left Detected Ball Opening");
+                UDPClient.SendString(aUsername, "explosion");
+            }
+
+            if((aRightStretch.isFacingCieling() && aRightStretch.isHandFlat()) && !aRightStretch.isFacingMonitor()
+                    && aRightVelocityFeatures.theMiddleDeltaVector.length() > 5 && message.getHandState(1).getPosition().y > 60) {
+                //System.out.println("Right Detected Ball Opening");
+            }
+
+            if(aLeftDistances.isFist() && aLeftVelocityFeatures.MovingInPositiveXDirection() && message.getHandState(0).getPosition().y > 60) {
+                //System.out.println("Left Fist Detected");
+            }
+
+            if(aRightDistances.isFist() && aRightVelocityFeatures.MovingInNegativeXDirection() && message.getHandState(1).getPosition().y > 100) {
+                System.out.println("Right Fist Detected");
+                UDPClient.SendString(aUsername, "screenpunch");
+            }
+
+            if(aRightStretch.isFireGunGesture() && message.getHandState(1).getPosition().y > 60) {
+                //System.out.println("Fire Gun Right Hand");
+            }
+
+            if(aLeftStretch.isFacingRight()) {
+                //System.out.println("Left Hand Facing Right");
+            }
+
+            if(aRightStretch.isFacingLeft()) {
+                //System.out.println("Right Hand Facing Left");
+            }
+
+            myOldMessage = message;
         }
+    }
+
+
+    public void Init() {
+        try {
+            myDisplay.Init();
+        } catch (LWJGLException e) {
+            e.printStackTrace();
+        }
+        Display.update();
     }
 
     public void Run() throws LWJGLException {
         myDisplay.Init();
         while (!finished) {
-            // Always call Window.update(), all the time
             Display.update();
             if (Display.isCloseRequested()) {
                 finished = true;
@@ -95,7 +164,7 @@ public class LiveFeatureViewer extends HandTrackingAdapter {
                 synchronized (myDisplay) {
                     String myString = "";
                     if(myRightStretch != null) {
-                        myDisplay.render(myRightVelocityFeatures.toString());
+                        myDisplay.render("Left: " + myRightVelocityFeatures.toString() + "\n\nRight: " + myLeftVelocityFeatures.toString());
                     } else {
                         myDisplay.render(myString);
                     }

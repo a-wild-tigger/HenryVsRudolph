@@ -15,21 +15,17 @@ public class UDPClient {
 
     public static void SendString(String aUsername, String aString) {
         DateTime myCurrentDate = new DateTime();
-
-        if (myCurrentDate.isBefore(restartOn)) {
-            return;
-        }
+        if (myCurrentDate.isBefore(restartOn)) { return; }
+        restartOn = myCurrentDate.plusMillis(300);
 
         try {
             DatagramSocket clientSocket = new DatagramSocket();
             InetAddress IPAddress = InetAddress.getByName("localhost");
             byte[] sendData = new byte[1024];
             sendData = (aUsername + "_" + aString).getBytes();
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 21567);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 11111);
             clientSocket.send(sendPacket);
             clientSocket.close();
-        sleep(1000)
-        awake = False
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (SocketException e) {

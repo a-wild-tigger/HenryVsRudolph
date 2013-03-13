@@ -39,7 +39,8 @@ public class VelocityFeatures {
         return  "\nHand Delta Vector = " + VectorOps.RenderVector(theHandDeltaVector) +
                 "\nMiddle Delta Vector = " + VectorOps.RenderVector(theMiddleDeltaVector) +
                 "\nIndex Delta Vector = " + VectorOps.RenderVector(theIndexDeltaVector) +
-                "\nMoving Positive X = " + MovingInNegativeXDirection();
+                "\nMoving Negative Z = " + MovingInNegativeZDirection() + " ( " + theHandDeltaVector.z + " ) " +
+                "\nMoving Negative X = " + MovingInPositiveXDirection() + " ( " + theHandDeltaVector.x + " ) ";
     }
 
     public boolean MovingInPositiveYDirection() {
@@ -55,11 +56,11 @@ public class VelocityFeatures {
     }
 
     public boolean MovingInNegativeYDirection() {
-        return theHandDeltaVector.y > -10;
+        return theHandDeltaVector.y > -20;
     }
 
     public boolean MovingInNegativeZDirection() {
-        return theHandDeltaVector.z > -10;
+        return theHandDeltaVector.z < -20;
     }
 
     public boolean MovingInNegativeXDirection() {

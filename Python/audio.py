@@ -1,6 +1,8 @@
 import MFCC, numpy
 import scipy.spatial.distance as dist
 
+THRESHOLD = 12
+
 def DynamicTimeWarp(aSequence1, aSequence2, mfccDistFunction):
     firstLen = len(aSequence1)
     secondLen = len(aSequence2)
@@ -57,7 +59,7 @@ class AudioClassifier ():
           lowest = gesture
       if verbose:
          print lowest, minimum
-      if(minimum < 12):
+      if(minimum < THRESHOLD):
         return lowest
       else:
         return None

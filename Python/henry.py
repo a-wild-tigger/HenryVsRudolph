@@ -260,12 +260,15 @@ def view_test_results(correctPredictions, incorrectPredictions, correctNoClass,
   
   for item in testData.keys():
     printv("\nGesture %s" % item)
-    total_correct = len(correctPredictions[item])
+    total_correct = 0
+    if(item in correctPredictions):
+        total_correct = len(correctPredictions[item])
     total = len(testData[item])
     printPercentages(total_correct, total)    
   
   for key in testData.keys():
-    total_correct += len(correctPredictions[key])    
+    if(key in correctPredictions):
+        total_correct += len(correctPredictions[key])    
     total += len(testData[key])
 
   printv("\n\nTotals for Classification with Labels")

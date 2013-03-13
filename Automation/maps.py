@@ -2,6 +2,7 @@ import autopy
 
 keymap = {}
 lookup = {}
+movemap = {}
 
 dirmap = {
     "Left" : "player3_L", # Left key
@@ -12,14 +13,21 @@ dirmap = {
 
 
 playermap = {
-    "anil" : {
+    "henry" : {
         "character" : "henry",
+        "player" : "player2"
+    },
+    "firzen" : {
+        "character" : "firzen",
+        "player" : "player2"
+    },
+    "anil" : {
+        "character" : "julian",
         "player" : "player3"
     },
-    "neel" : {
-        "character" : "henry",
+    "temporary" : {
+        "character" : "rudolph",
         "player" : "player3"
-        `
     }
 }
 
@@ -27,11 +35,32 @@ defaultmovemap = {
     "dbz" : "stormofstars",
     "circle" : "stormofstars2",
     "ball" : "double",
-    "shotgun" : "shotgunarrow",
     "cannon" : "firzencannon",
     "shoot" : "overwhelmingdisaster",
-    "volcano" : "arcticvolcano"
- }
+    "explode" : "arcticvolcano",
+    "play" : "sonataofdeath",
+    "wait" : "dragonpalm",
+    "arrow" : "fatalarrow",
+    "screenpunch" : "zorngeist",
+    "explosion" : "katastrophe",
+    "hadouken" : "missgestalt"
+}
+ 
+movemap["henry"] = {
+    "dbz" : "stormofstars",
+    "circle" : "stormofstars2",
+    "ball" : "double",
+    "cannon" : "firzencannon",
+    "shoot" : "shotgunarrow",
+    "volcano" : "arcticvolcano",
+    "play" : "sonataofdeath",
+    "wait" : "dragonpalm",
+    "arrow" : "fatalarrow",
+    "screenpunch" : "zorngeist",
+    "explosion" : "katastrophe",
+    "hadouken" : "missgestalt"
+}
+ 
  
 defaultmap = {
 	"shadowedge" : [["DE"],["DIR"],["J"]],
@@ -47,7 +76,13 @@ defaultmap = {
 	"sonataofdeath" : [["DE"],["U"],["J"]],
     "firzencannon" : [["DE"],["DIR"],["J"]],
     "overwhelmingdisaster" : [["DE"],["U"],["A"]],
-    "arcticvolcano" : [["DE"],["U"],["J"]]
+    "arcticvolcano" : [["DE"],["U"],["J"]],
+    "himmelfall" : [["DE"],["U"],["A"]],
+    "todesengel" : [["DIR"],["DIR"],["A"]],
+    "missgestalt" : [["DE"],["DIR"],["A"],["A"],["A"]],
+    "schattenmirage" : [["DE"],["J"],["A"]],
+    "katastrophe" : [["DE"],["U"],["J"]],
+    "zorngeist" : [["DE"],["DIR"],["J"]]
 }
 
 lookup["player3"] = {
@@ -63,17 +98,22 @@ lookup["player3"] = {
 
 lookup["player2"] = {
 	"U" : 'w',
-	"DO" : 'x',
+	"DO" : 's',
 	"L" : 'a',
 	"R" : 'd',
-	"A" : 's',
+	"A" : '`',
 	"J" : '\t',
-	"DE" : '`',
+	"DE" : autopy.key.K_CAPSLOCK,
 	"DIR" : 'a'
 }
 
 keymap["default"] = defaultmap
 keymap["rudolph"] = defaultmap
 keymap["henry"] = defaultmap
+keymap["firzen"] = defaultmap
+keymap["julian"] = defaultmap
 
-movemap = defaultmovemap
+movemap["default"] = defaultmovemap
+movemap["rudolph"] = defaultmovemap
+movemap["julian"] = defaultmovemap
+movemap["firzen"] = defaultmovemap

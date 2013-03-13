@@ -1,5 +1,6 @@
 package com.mobilecomputing.src.Training.Classification;
 
+import com.mobilecomputing.src.Training.Persistence.drawing.AbstractDisplay;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingClient;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingListener;
 import com.mobilecomputing.src.Training.Persistence.threegears.HandTrackingMessage;
@@ -9,6 +10,7 @@ import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageDist
 import com.mobilecomputing.src.Training.Training.FeatureExtractors.AppendageStretch;
 import com.mobilecomputing.src.Training.Training.FeatureExtractors.HandInteraction;
 import com.mobilecomputing.src.Training.Training.FeatureExtractors.VelocityFeatures;
+import com.mobilecomputing.src.Training.Training.LiveFeatureViewer;
 import com.mobilecomputing.src.Training.Training.StaticTrainedParameters;
 import com.sun.org.apache.xpath.internal.functions.FuncFalse;
 import org.lwjgl.LWJGLException;
@@ -22,10 +24,13 @@ public class BaseClassifier implements HandTrackingListener {
     public volatile boolean theVar = true;
     public final String aUser;
 
+    private LiveFeatureViewer myViewer = new LiveFeatureViewer();
+
     public BaseClassifier(String aUsername, ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) {
         aUser = aUsername;
         theCTSParams = myCTSParams;
         theStaticParams = myStaticParams;
+        myViewer.Init();
     }
 
     public static void Run(String aUser, ContinuousTrainedParameters myCTSParams, StaticTrainedParameters myStaticParams) {
@@ -45,7 +50,7 @@ public class BaseClassifier implements HandTrackingListener {
             myClient.stop();
         }
     }
-
+            private boolean isInit = false;
     private boolean FirstRound = true;
     private PoseMessage aFirstPoseMessage;
     @Override

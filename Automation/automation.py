@@ -44,7 +44,7 @@ while True:
         gesture = command[1]
         player = playermap[username]["player"]
         character = playermap[username]["character"]
-        move = movemap[gesture]
+        move = movemap[character][gesture]
         keylist = keymap[character][move]
         print username, gesture, player, character, move, keylist
         for keys in keylist:
@@ -58,8 +58,8 @@ while True:
                 
                     autopy.key.toggle (key, False)
 
-    except KeyError:
-        print "Command not found:", command
+    except KeyError as e:
+        print "Command not found:", command, e
 
 
         
